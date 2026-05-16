@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Bridge process for GnuCash.DotNet. Published as win-x86 for official Windows GnuCash installs.</Description>
+    <IsPackable>False</IsPackable>
+    <PackAsTool>false</PackAsTool>
+    <RuntimeIdentifiers>win-x86</RuntimeIdentifiers>
+    <SelfContained>false</SelfContained>
+    <ToolCommandName>gnucash-dotnet-bridge</ToolCommandName>
+    <HeurexWithDi>True</HeurexWithDi>
+    <DefineConstants Condition="'$(HeurexWithDi)' == 'true'">$(DefineConstants);HEUREX_WITH_DI</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Spectre.Console" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HeurexWithDi)' == 'true'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HeurexWithDi)' == 'true'">
+    <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GnuCash.DotNet.Protocol\GnuCash.DotNet.Protocol.csproj" />
+  </ItemGroup>
+</Project>

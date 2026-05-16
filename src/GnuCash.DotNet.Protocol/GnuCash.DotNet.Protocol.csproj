@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>abstractions class library.</Description>
+    <IsPackable>True</IsPackable>
+    <HeurexLibraryKind>abstractions</HeurexLibraryKind>
+    <HeurexWithLogging>False</HeurexWithLogging>
+    <HeurexWithOptions>False</HeurexWithOptions>
+    <HeurexWithConfiguration>False</HeurexWithConfiguration>
+    <HeurexWithDi>False</HeurexWithDi>
+    <HeurexWithSerilog>False</HeurexWithSerilog>
+  </PropertyGroup>
+
+  <ItemGroup Condition="
+      '$(HeurexWithLogging)' == 'true'
+      Or '$(HeurexLibraryKind)' == 'application'
+      Or '$(HeurexLibraryKind)' == 'integration'
+      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="
+      '$(HeurexWithOptions)' == 'true'
+      Or '$(HeurexLibraryKind)' == 'application'
+      Or '$(HeurexLibraryKind)' == 'integration'
+      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <ItemGroup Condition="
+      '$(HeurexWithConfiguration)' == 'true'
+      Or '$(HeurexLibraryKind)' == 'application'
+      Or '$(HeurexLibraryKind)' == 'integration'
+      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+  </ItemGroup>
+
+  <ItemGroup Condition="
+      '$(HeurexWithDi)' == 'true'
+      Or '$(HeurexLibraryKind)' == 'application'
+      Or '$(HeurexLibraryKind)' == 'integration'
+      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HeurexWithSerilog)' == 'true'">
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+  </ItemGroup>
+</Project>

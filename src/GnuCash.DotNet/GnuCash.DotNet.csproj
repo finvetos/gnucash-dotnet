@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>integration class library.</Description>
+    <IsPackable>True</IsPackable>
+    <HeurexLibraryKind>integration</HeurexLibraryKind>
+    <HeurexWithLogging>False</HeurexWithLogging>
+    <HeurexWithOptions>False</HeurexWithOptions>
+    <HeurexWithConfiguration>False</HeurexWithConfiguration>
+    <HeurexWithDi>False</HeurexWithDi>
+    <HeurexWithSerilog>False</HeurexWithSerilog>
+  </PropertyGroup>
+
+  <ItemGroup Condition="&#xA;      '$(HeurexWithLogging)' == 'true'&#xA;      Or '$(HeurexLibraryKind)' == 'application'&#xA;      Or '$(HeurexLibraryKind)' == 'integration'&#xA;      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="&#xA;      '$(HeurexWithOptions)' == 'true'&#xA;      Or '$(HeurexLibraryKind)' == 'application'&#xA;      Or '$(HeurexLibraryKind)' == 'integration'&#xA;      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <ItemGroup Condition="&#xA;      '$(HeurexWithConfiguration)' == 'true'&#xA;      Or '$(HeurexLibraryKind)' == 'application'&#xA;      Or '$(HeurexLibraryKind)' == 'integration'&#xA;      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+  </ItemGroup>
+
+  <ItemGroup Condition="&#xA;      '$(HeurexWithDi)' == 'true'&#xA;      Or '$(HeurexLibraryKind)' == 'application'&#xA;      Or '$(HeurexLibraryKind)' == 'integration'&#xA;      Or '$(HeurexLibraryKind)' == 'runtime'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(HeurexWithSerilog)' == 'true'">
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GnuCash.DotNet.Protocol\GnuCash.DotNet.Protocol.csproj" />
+  </ItemGroup>
+</Project>

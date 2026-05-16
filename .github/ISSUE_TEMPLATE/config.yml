@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contribution status
+    url: https://github.com/finvetos/gnucash-dotnet/blob/main/How%20to%20Contribute.md
+    about: Read the current contribution policy before opening issues.
+  - name: Security policy
+    url: https://github.com/finvetos/gnucash-dotnet/security/policy
+    about: Report security-sensitive issues through the security policy instead of public issues.

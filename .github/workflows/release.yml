@@ -1,0 +1,70 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: package release
+    runs-on: windows-latest
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Build Sentrux
+        run: pwsh -File ./tools/build-sentrux.ps1
+
+      - name: Release gates and pack
+        run: pwsh -File ./tools/release.ps1 -Configuration Release
+
+      - name: Publish bridge win-x86
+        run: dotnet publish src/GnuCash.DotNet.Bridge/GnuCash.DotNet.Bridge.csproj --configuration Release --runtime win-x86 --no-self-contained --output releases/publish/bridge-win-x86
+
+      - name: Smoke test bridge
+        run: releases/publish/bridge-win-x86/GnuCash.DotNet.Bridge.exe ping --json
+
+      - name: Archive bridge
+        run: Compress-Archive -Path releases/publish/bridge-win-x86/* -DestinationPath releases/packages/GnuCash.DotNet.Bridge-win-x86.zip -Force
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: nuget-packages
+          path: |
+            releases/packages/*.nupkg
+            releases/packages/GnuCash.DotNet.Bridge-win-x86.zip
+
+      - name: Upload bridge
+        uses: actions/upload-artifact@v6
+        with:
+          name: bridge-win-x86
+          path: releases/publish/bridge-win-x86
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            releases/packages/*.nupkg
+            releases/packages/GnuCash.DotNet.Bridge-win-x86.zip
+          generate_release_notes: true
+
+      - name: Publish to NuGet
+        if: ${{ startsWith(github.ref, 'refs/tags/') && env.NUGET_API_KEY != '' }}
+        run: dotnet nuget push "releases/packages/*.nupkg" --api-key "$env:NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate

@@ -1,0 +1,25 @@
+mode: ContinuousDelivery
+tag-prefix: '[vV]?'
+commit-message-incrementing: Enabled
+
+major-version-bump-message: '(^.+!:|^.+:.*\n\nBREAKING CHANGE:\s.+|\+semver:\s?(breaking|major))'
+minor-version-bump-message: '(^feat(\([\w\s\-\.\/]*\))?:|\+semver:\s?(feature|minor))'
+patch-version-bump-message: '(^fix(\([\w\s\-\.\/]*\))?:|^perf(\([\w\s\-\.\/]*\))?:|^revert(\([\w\s\-\.\/]*\))?:|\+semver:\s?(fix|patch))'
+no-bump-message: '\+semver:\s?(none|skip)'
+
+branches:
+  main:
+    regex: ^main$
+    label: ''
+    increment: Patch
+  develop:
+    regex: ^dev(elop)?$
+    label: alpha
+    increment: Minor
+  feature:
+    regex: ^features?[/-]
+    label: alpha
+    increment: Inherit
+  pull-request:
+    label: pr
+    increment: Inherit

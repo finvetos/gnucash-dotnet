@@ -1,0 +1,6 @@
+package:
+  id: "GnuCash.DotNet"
+  kind: solution-shell
+  expectedArtifacts:
+    - releases/packages/*.nupkg
+    - releases/packages/*.snupkg

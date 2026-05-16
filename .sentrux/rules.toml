@@ -1,0 +1,58 @@
+[constraints]
+min_quality = 0.70
+min_modularity = 0.65
+min_acyclicity = 0.95
+min_depth = 0.70
+min_equality = 0.60
+min_redundancy = 0.60
+max_cycles = 0
+max_cc = 20
+max_fn_lines = 90
+max_file_lines = 500
+max_coupling_score = 0.38
+no_god_files = true
+
+[[layers]]
+name = "protocol"
+paths = ["src/GnuCash.DotNet.Protocol/**"]
+order = 0
+
+[[layers]]
+name = "sdk"
+paths = ["src/GnuCash.DotNet/**"]
+order = 1
+
+[[layers]]
+name = "bridge"
+paths = ["src/GnuCash.DotNet.Bridge/**"]
+order = 2
+
+[[layers]]
+name = "tests"
+paths = ["test/**"]
+order = 3
+
+[[boundaries]]
+from = "src/**"
+to = "test/**"
+reason = "Production code must not depend on test code."
+
+[[boundaries]]
+from = "src/GnuCash.DotNet.Protocol/**"
+to = "src/GnuCash.DotNet/**"
+reason = "Protocol contracts must remain pure and independent from the SDK implementation."
+
+[[boundaries]]
+from = "src/GnuCash.DotNet.Protocol/**"
+to = "src/GnuCash.DotNet.Bridge/**"
+reason = "Protocol contracts must remain pure and independent from the bridge process."
+
+[[boundaries]]
+from = "src/GnuCash.DotNet/**"
+to = "src/GnuCash.DotNet.Bridge/**"
+reason = "The public SDK must not couple to bridge implementation details."
+
+[[boundaries]]
+from = "src/GnuCash.DotNet.Bridge/**"
+to = "src/GnuCash.DotNet/**"
+reason = "The bridge may share protocol contracts but must not call back into SDK implementation."

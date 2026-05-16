@@ -1,0 +1,27 @@
+release:
+  product: "GnuCash.DotNet"
+  versioning: gitversion
+  strategy: semver
+  configuration: Release
+  gates:
+    - dotnet-restore
+    - dotnet-build
+    - dotnet-test-archunitnet
+    - archunitnet-boundary-smell-tests
+    - sentrux-check-include-untracked
+    - sentrux-gate-if-baseline-exists
+    - pack
+  sentrux:
+    preferredBinary: tools/sentrux/sentrux.exe
+    sourceFork: ../sentrux
+    fallbackRepo: https://github.com/dbchandra23/sentrux.git
+    branch: codex/include-untracked-scan-files
+    requireForRelease: true
+  artifacts:
+    packages: releases/packages
+    logs: releases/artifacts
+  publish:
+    requireCleanWorkingTree: true
+    requireTaggedRelease: false
+    allowPreviewPackages: true
+    defaultChannel: local-nuget

@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="src/GnuCash.DotNet.Bridge/GnuCash.DotNet.Bridge.csproj" />
+  <Project Path="src/GnuCash.DotNet.Protocol/GnuCash.DotNet.Protocol.csproj" />
+  <Project Path="src/GnuCash.DotNet/GnuCash.DotNet.csproj" />
+  <Project Path="test/GnuCash.DotNet.Bridge.Tests/GnuCash.DotNet.Bridge.Tests.csproj" />
+  <Project Path="test/GnuCash.DotNet.Architecture.Tests/GnuCash.DotNet.Architecture.Tests.csproj" />
+  <Project Path="test/GnuCash.DotNet.Protocol.Tests/GnuCash.DotNet.Protocol.Tests.csproj" />
+  <Project Path="test/GnuCash.DotNet.Tests/GnuCash.DotNet.Tests.csproj" />
+</Solution>

@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+commit_msg_file="$1"
+first_line="$(head -n 1 "$commit_msg_file")"
+
+case "$first_line" in
+  feat:*|fix:*|perf:*|docs:*|test:*|refactor:*|build:*|ci:*|chore:*|style:*|revert:*|feat\!:*|fix\!:*|perf\!:*|refactor\!:*)
+    exit 0
+    ;;
+esac
+
+if grep -qiE '^\+semver:\s?(major|minor|patch|breaking|feature|fix|none|skip)' "$commit_msg_file"; then
+  exit 0
+fi
+
+cat <<'MESSAGE'
+Commit message should use Conventional Commits or an explicit +semver directive.
+
+Examples:
+  feat: add list command
+  fix: handle redirected output
+  feat!: change command contract
+  chore: update template docs
+  +semver: minor
+MESSAGE
+
+exit 1

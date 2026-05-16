@@ -1,0 +1,7 @@
+channel:
+  name: local-nuget
+  kind: filesystem
+  path: releases/packages
+  externalRootEnvironmentVariable: HEUREX_TEMPLATE_BUILD_ROOT
+  externalPathSuffix: dotnet/packages
+  publishByDefault: true

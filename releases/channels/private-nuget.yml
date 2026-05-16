@@ -1,0 +1,6 @@
+channel:
+  name: private-nuget
+  kind: nuget
+  source: ""
+  apiKeyEnvironmentVariable: NUGET_API_KEY
+  publishByDefault: false

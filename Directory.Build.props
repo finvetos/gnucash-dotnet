@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/finvetos/gnucash-dotnet</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/finvetos/gnucash-dotnet</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Authors>Finvetos contributors</Authors>
+    <Company>Finvetos</Company>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <HeurexTemplateBuildRoot Condition="'$(HeurexTemplateBuildRoot)' == '' and '$(HEUREX_TEMPLATE_BUILD_ROOT)' != ''">$(HEUREX_TEMPLATE_BUILD_ROOT)</HeurexTemplateBuildRoot>
+    <HeurexTemplateBuildGroup Condition="'$(HeurexTemplateBuildGroup)' == ''">dotnet</HeurexTemplateBuildGroup>
+    <BaseOutputPath Condition="'$(BaseOutputPath)' == '' and '$(HeurexTemplateBuildRoot)' != ''">$([MSBuild]::NormalizeDirectory('$(HeurexTemplateBuildRoot)', '$(HeurexTemplateBuildGroup)', 'bin', '$(MSBuildProjectName)'))</BaseOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == '' and '$(HeurexTemplateBuildRoot)' != ''">$([MSBuild]::NormalizeDirectory('$(HeurexTemplateBuildRoot)', '$(HeurexTemplateBuildGroup)', 'obj', '$(MSBuildProjectName)'))</BaseIntermediateOutputPath>
+    <MSBuildProjectExtensionsPath Condition="'$(MSBuildProjectExtensionsPath)' == '' and '$(HeurexTemplateBuildRoot)' != ''">$(BaseIntermediateOutputPath)</MSBuildProjectExtensionsPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**;artifacts/**;publish/**;packages/**;releases/artifacts/**;releases/packages/**;releases/publish/**;releases/tmp/**</DefaultItemExcludes>
+    <HeurexUseGitVersion Condition="'$(HeurexUseGitVersion)' == ''">True</HeurexUseGitVersion>
+    <HeurexHasGitRepository Condition="Exists('$(MSBuildThisFileDirectory).git')">true</HeurexHasGitRepository>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(HeurexUseGitVersion)' == 'true' And '$(HeurexHasGitRepository)' == 'true'">
+    <PackageReference Include="GitVersion.MsBuild" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
