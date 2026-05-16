@@ -43,7 +43,7 @@ jobs:
         run: Compress-Archive -Path releases/publish/bridge-win-x86/* -DestinationPath releases/packages/GnuCash.DotNet.Bridge-win-x86.zip -Force
 
       - name: Upload packages
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nuget-packages
           path: |
@@ -51,7 +51,7 @@ jobs:
             releases/packages/GnuCash.DotNet.Bridge-win-x86.zip
 
       - name: Upload bridge
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: bridge-win-x86
           path: releases/publish/bridge-win-x86
