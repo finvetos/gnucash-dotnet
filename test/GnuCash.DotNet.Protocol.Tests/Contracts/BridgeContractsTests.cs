@@ -15,6 +15,14 @@ public sealed class BridgeContractsTests
     }
 
     [Fact]
+    public void ResponseCanCarryBridgeDiagnostics()
+    {
+        var response = new BridgeResponse(Guid.NewGuid(), false, DiagnosticOutput: "native stderr");
+
+        Assert.Equal("native stderr", response.DiagnosticOutput);
+    }
+
+    [Fact]
     public void BookCapabilityRequestsHaveStableProtocolNumbers()
     {
         Assert.Equal(2, (int)BridgeRequestKind.OpenBook);

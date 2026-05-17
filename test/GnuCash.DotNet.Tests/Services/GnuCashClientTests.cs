@@ -104,6 +104,27 @@ public sealed class GnuCashClientTests
     }
 
     [Fact]
+    public async Task OpenBookAsyncIncludesBridgeDiagnosticsWhenBridgeWritesStandardError()
+    {
+        var missingBookPath = Path.Combine(
+            Path.GetTempPath(),
+            "gnucash-dotnet-tests",
+            Guid.NewGuid().ToString("N"),
+            "missing.gnucash");
+        var client = CreateClient(new GnuCashBridgeOptions
+        {
+            BridgeExecutablePath = typeof(CliApplication).Assembly.Location
+        });
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => client.OpenBookAsync(missingBookPath, TestContext.Current.CancellationToken));
+
+        Assert.Contains("does not exist", error.Message, StringComparison.Ordinal);
+        Assert.Contains("Bridge diagnostics:", error.Message, StringComparison.Ordinal);
+        Assert.Contains("Bridge request failed:", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task OpenBookAsyncCanListCommoditiesAccountsTransactionsAndSplits()
     {
         using var fixture = GnuCashBookFixture.Create();

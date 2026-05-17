@@ -67,12 +67,17 @@ public sealed class GnuCashClient
         if (!response.Succeeded)
         {
             throw new InvalidOperationException(
-                response.ErrorMessage ?? "The GnuCash bridge could not validate the local installation.");
+                CreateBridgeFailureMessage(
+                    response,
+                    "The GnuCash bridge could not validate the local installation."));
         }
 
         if (string.IsNullOrWhiteSpace(response.PayloadJson))
         {
-            throw new InvalidOperationException("The GnuCash bridge returned no validation payload.");
+            throw new InvalidOperationException(
+                AppendDiagnostics(
+                    "The GnuCash bridge returned no validation payload.",
+                    response.DiagnosticOutput));
         }
 
         return JsonSerializer.Deserialize<GnuCashInstallationStatus>(
@@ -164,19 +169,35 @@ public sealed class GnuCashClient
         if (!response.Succeeded)
         {
             throw new InvalidOperationException(
-                response.ErrorMessage ?? $"The GnuCash bridge could not process {kind}.");
+                CreateBridgeFailureMessage(response, $"The GnuCash bridge could not process {kind}."));
         }
 
         if (string.IsNullOrWhiteSpace(response.PayloadJson))
         {
-            throw new InvalidOperationException($"The GnuCash bridge returned no payload for {kind}.");
+            throw new InvalidOperationException(
+                AppendDiagnostics(
+                    $"The GnuCash bridge returned no payload for {kind}.",
+                    response.DiagnosticOutput));
         }
 
         return JsonSerializer.Deserialize<TPayload>(
                    response.PayloadJson,
                    SerializerOptions) ??
-               throw new InvalidOperationException($"The GnuCash bridge returned an invalid payload for {kind}.");
+               throw new InvalidOperationException(
+                   AppendDiagnostics(
+                       $"The GnuCash bridge returned an invalid payload for {kind}.",
+                       response.DiagnosticOutput));
     }
+
+    private static string CreateBridgeFailureMessage(BridgeResponse response, string fallbackMessage) =>
+        AppendDiagnostics(
+            response.ErrorMessage ?? fallbackMessage,
+            response.DiagnosticOutput);
+
+    private static string AppendDiagnostics(string message, string? diagnostics) =>
+        string.IsNullOrWhiteSpace(diagnostics)
+            ? message
+            : message + Environment.NewLine + "Bridge diagnostics:" + Environment.NewLine + diagnostics;
 
     private static GnuCashBookInfo Map(GnuCashBookSummary summary) =>
         new(

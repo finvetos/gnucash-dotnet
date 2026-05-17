@@ -34,6 +34,8 @@ The executable has two modes:
 - Human mode: commands such as `help`, `list`, `ping`, and `validate` render through Spectre.Console when attached to an interactive terminal and can fall back to plain or JSON output.
 - Headless mode: `GnuCash.DotNet.Bridge headless --stdio` is reserved for the SDK. It reads one `BridgeRequest` JSON envelope per line from stdin and writes one compact `BridgeResponse` JSON envelope per line to stdout. Diagnostic text goes to stderr only.
 
+The SDK redirects and drains bridge stderr for every request. Captured stderr is returned on `BridgeResponse.DiagnosticOutput` and appended to SDK exceptions under `Bridge diagnostics:` when a bridge request fails or returns an invalid response. Native GnuCash stderr remains diagnostic context; protocol success/failure and native API error codes remain authoritative.
+
 The `validate` command is the user-facing preflight:
 
 ```powershell

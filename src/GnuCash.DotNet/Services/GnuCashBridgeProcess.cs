@@ -10,6 +10,7 @@ namespace GnuCash.DotNet.Services;
 internal sealed class GnuCashBridgeProcess
 {
     private const string BridgePathEnvironmentVariable = "GNUCASH_DOTNET_BRIDGE_PATH";
+    private const int MaxDiagnosticCharacters = 16_384;
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -60,27 +61,42 @@ internal sealed class GnuCashBridgeProcess
         await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
 
         var stderr = await ReadStandardErrorAsync(stderrTask).ConfigureAwait(false);
+        var diagnostics = NormalizeDiagnostics(stderr);
         if (string.IsNullOrWhiteSpace(responseLine))
         {
             throw new InvalidOperationException(
-                $"The GnuCash bridge did not return a protocol response. {stderr}".Trim());
+                AppendDiagnostics("The GnuCash bridge did not return a protocol response.", diagnostics));
         }
 
         var response = JsonSerializer.Deserialize<BridgeResponse>(responseLine, SerializerOptions);
         if (response is null)
         {
-            throw new InvalidOperationException("The GnuCash bridge returned an empty protocol response.");
+            throw new InvalidOperationException(
+                AppendDiagnostics("The GnuCash bridge returned an empty protocol response.", diagnostics));
         }
 
-        if (process.ExitCode != 0 && !response.Succeeded)
+        response = response with { DiagnosticOutput = diagnostics };
+
+        if (!string.IsNullOrWhiteSpace(diagnostics))
         {
-            logger.LogWarning(
-                "GnuCash bridge exited with code {ExitCode}: {Error}",
-                process.ExitCode,
-                stderr);
+            LogDiagnostics(process.ExitCode, response, diagnostics);
         }
 
         return response;
+    }
+
+    private void LogDiagnostics(int exitCode, BridgeResponse response, string diagnostics)
+    {
+        if (exitCode != 0 || !response.Succeeded)
+        {
+            logger.LogWarning(
+                "GnuCash bridge emitted diagnostics and exited with code {ExitCode}: {Diagnostics}",
+                exitCode,
+                diagnostics);
+            return;
+        }
+
+        logger.LogDebug("GnuCash bridge emitted diagnostics: {Diagnostics}", diagnostics);
     }
 
     private ProcessStartInfo CreateStartInfo(BridgeLaunchInfo launch)
@@ -183,6 +199,29 @@ internal sealed class GnuCashBridgeProcess
             return string.Empty;
         }
     }
+
+    private static string? NormalizeDiagnostics(string diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(diagnostics))
+        {
+            return null;
+        }
+
+        var trimmed = diagnostics.Trim();
+        if (trimmed.Length <= MaxDiagnosticCharacters)
+        {
+            return trimmed;
+        }
+
+        return $"[truncated to last {MaxDiagnosticCharacters} characters]" +
+               Environment.NewLine +
+               trimmed[^MaxDiagnosticCharacters..];
+    }
+
+    private static string AppendDiagnostics(string message, string? diagnostics) =>
+        string.IsNullOrWhiteSpace(diagnostics)
+            ? message
+            : message + Environment.NewLine + "Bridge diagnostics:" + Environment.NewLine + diagnostics;
 
     private sealed record BridgeLaunchInfo(string FileName, IReadOnlyList<string> Arguments);
 }

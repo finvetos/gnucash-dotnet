@@ -43,7 +43,8 @@ public sealed record BridgeResponse(
     string? PayloadJson = null,
     string? ErrorCode = null,
     string? ErrorMessage = null,
-    int ProtocolVersion = BridgeProtocol.CurrentVersion);
+    int ProtocolVersion = BridgeProtocol.CurrentVersion,
+    string? DiagnosticOutput = null);
 
 /// <summary>
 /// Minimal health information used by early process-start and compatibility checks.
