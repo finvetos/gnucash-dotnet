@@ -57,55 +57,19 @@ public sealed class GnuCashNativeSession
         GnuCashNativeRuntimeState runtimeState,
         string normalizedBookPath)
     {
-        var session = IntPtr.Zero;
-        var bookUri = IntPtr.Zero;
-
         try
         {
-            var book = GnuCashNativeMethods.qof_book_new();
-            session = GnuCashNativeMethods.qof_session_new(book);
-
-            if (session == IntPtr.Zero)
-            {
-                return CreateStatus(
-                    runtimeState.ApiStatus,
-                    normalizedBookPath,
-                    message: "The native GnuCash engine could not create a session.");
-            }
-
-            bookUri = GnuCashNativeMethods.gnc_uri_normalize_uri(normalizedBookPath, allowPassword: 0);
-            var sessionUri = GnuCashNativeMethods.PtrToUtf8String(bookUri) ?? normalizedBookPath;
-
-            GnuCashNativeMethods.qof_session_begin(session, sessionUri, SessionOpenMode.ReadOnly);
-            var beginError = ReadBackendError(session);
-            if (beginError.Code != 0)
-            {
-                return CreateStatus(
-                    runtimeState.ApiStatus,
-                    normalizedBookPath,
-                    backendErrorCode: beginError.Code,
-                    backendErrorMessage: beginError.Message,
-                    message: "The native GnuCash engine could not begin a read-only session.");
-            }
-
-            GnuCashNativeMethods.qof_session_load(session, IntPtr.Zero);
-            var loadError = ReadBackendError(session);
-            var loadedBook = GnuCashNativeMethods.qof_session_get_book(session);
-            var rootAccount = loadedBook == IntPtr.Zero
-                ? IntPtr.Zero
-                : GnuCashNativeMethods.gnc_book_get_root_account(loadedBook);
-            int? transactionCount = loadedBook == IntPtr.Zero
-                ? null
-                : GnuCashNativeMethods.gnc_book_count_transactions(loadedBook);
-
-            return CreateLoadedStatus(
+            using var handle = GnuCashNativeSessionHandle.OpenReadOnly(normalizedBookPath);
+            return CreateLoadedStatus(runtimeState.ApiStatus, normalizedBookPath, handle);
+        }
+        catch (GnuCashNativeOperationException ex)
+        {
+            return CreateStatus(
                 runtimeState.ApiStatus,
                 normalizedBookPath,
-                session,
-                loadedBook,
-                rootAccount,
-                transactionCount,
-                loadError);
+                backendErrorCode: ex.BackendErrorCode,
+                backendErrorMessage: ex.BackendErrorMessage,
+                message: ex.Message);
         }
         catch (Exception ex) when (
             ex is DllNotFoundException or
@@ -119,58 +83,24 @@ public sealed class GnuCashNativeSession
                 normalizedBookPath,
                 message: "The native GnuCash runtime call failed: " + ex.Message);
         }
-        finally
-        {
-            if (bookUri != IntPtr.Zero)
-            {
-                GnuCashNativeMethods.g_free(bookUri);
-            }
-
-            if (session != IntPtr.Zero)
-            {
-                CloseSession(session);
-            }
-        }
     }
 
     private static GnuCashNativeSessionStatus CreateLoadedStatus(
         GnuCashNativeApiStatus apiStatus,
         string normalizedBookPath,
-        IntPtr session,
-        IntPtr loadedBook,
-        IntPtr rootAccount,
-        int? transactionCount,
-        (int Code, string? Message) loadError) =>
+        GnuCashNativeSessionHandle handle) =>
         CreateStatus(
             apiStatus,
             normalizedBookPath,
-            sessionFilePath: GnuCashNativeMethods.PtrToUtf8String(
-                GnuCashNativeMethods.qof_session_get_file_path(session)),
-            sessionUrl: GnuCashNativeMethods.PtrToUtf8String(
-                GnuCashNativeMethods.qof_session_get_url(session)),
-            hasBook: loadedBook != IntPtr.Zero,
-            hasRootAccount: rootAccount != IntPtr.Zero,
-            transactionCount: transactionCount,
-            backendErrorCode: loadError.Code,
-            backendErrorMessage: loadError.Message,
-            message: loadError.Code == 0
-                ? "The native GnuCash engine opened the book read-only."
-                : "The native GnuCash engine could not load the book.");
-
-    private static void CloseSession(IntPtr session)
-    {
-        GnuCashNativeMethods.qof_session_end(session);
-        GnuCashNativeMethods.qof_session_destroy(session);
-    }
-
-    private static (int Code, string? Message) ReadBackendError(IntPtr session)
-    {
-        var code = GnuCashNativeMethods.qof_session_get_error(session);
-        var message = GnuCashNativeMethods.PtrToUtf8String(
-            GnuCashNativeMethods.qof_session_get_error_message(session));
-
-        return (code, string.IsNullOrWhiteSpace(message) ? null : message);
-    }
+            sessionFilePath: handle.SessionFilePath,
+            sessionUrl: handle.SessionUrl,
+            hasBook: handle.Book != IntPtr.Zero,
+            hasRootAccount: handle.RootAccount != IntPtr.Zero,
+            accountCount: handle.AccountCount,
+            commodityCount: handle.CommodityCount,
+            transactionCount: handle.TransactionCount,
+            backendErrorCode: 0,
+            message: "The native GnuCash engine opened the book read-only.");
 
     private static GnuCashNativeSessionStatus CreateStatus(
         GnuCashNativeApiStatus? apiStatus,
@@ -179,6 +109,8 @@ public sealed class GnuCashNativeSession
         string? sessionUrl = null,
         bool hasBook = false,
         bool hasRootAccount = false,
+        int? accountCount = null,
+        int? commodityCount = null,
         int? transactionCount = null,
         int? backendErrorCode = null,
         string? backendErrorMessage = null,
@@ -202,6 +134,8 @@ public sealed class GnuCashNativeSession
             ProcessArchitecture: apiStatus?.ProcessArchitecture ?? RuntimeInformation.ProcessArchitecture.ToString(),
             HasBook: hasBook,
             HasRootAccount: hasRootAccount,
+            AccountCount: accountCount,
+            CommodityCount: commodityCount,
             TransactionCount: transactionCount,
             BackendErrorCode: backendErrorCode,
             BackendErrorMessage: backendErrorMessage,

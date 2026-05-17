@@ -107,6 +107,8 @@ public sealed record GnuCashNativeSessionStatus(
     string ProcessArchitecture,
     bool HasBook,
     bool HasRootAccount,
+    int? AccountCount,
+    int? CommodityCount,
     int? TransactionCount,
     int? BackendErrorCode,
     string? BackendErrorMessage,

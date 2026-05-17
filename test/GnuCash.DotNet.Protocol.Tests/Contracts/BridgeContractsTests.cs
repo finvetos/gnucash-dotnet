@@ -23,6 +23,34 @@ public sealed class BridgeContractsTests
     }
 
     [Fact]
+    public void NativeSessionStatusCanCarryNativeSummaryCounts()
+    {
+        var status = new GnuCashNativeSessionStatus(
+            IsReady: true,
+            CanCallFromCurrentProcess: true,
+            InstallPath: "C:/Program Files (x86)/gnucash",
+            DisplayVersion: "5.13",
+            BookPath: "sample.gnucash",
+            EnginePath: "libgnc-engine.dll",
+            SessionFilePath: "sample.gnucash",
+            SessionUrl: "xml:///sample.gnucash",
+            ProcessArchitecture: "X86",
+            HasBook: true,
+            HasRootAccount: true,
+            AccountCount: 3,
+            CommodityCount: 2,
+            TransactionCount: 1,
+            BackendErrorCode: 0,
+            BackendErrorMessage: null,
+            CheckedPaths: [],
+            Message: "ready");
+
+        Assert.Equal(3, status.AccountCount);
+        Assert.Equal(2, status.CommodityCount);
+        Assert.Equal(1, status.TransactionCount);
+    }
+
+    [Fact]
     public void BookCapabilityRequestsHaveStableProtocolNumbers()
     {
         Assert.Equal(2, (int)BridgeRequestKind.OpenBook);

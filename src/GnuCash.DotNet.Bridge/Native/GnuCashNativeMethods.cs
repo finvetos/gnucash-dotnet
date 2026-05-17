@@ -74,6 +74,15 @@ internal static class GnuCashNativeMethods
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int gnc_book_count_transactions(IntPtr book);
 
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_account_n_descendants(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_table_get_table(IntPtr book);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_commodity_table_get_size(IntPtr table);
+
     [DllImport(GlibLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void g_free(IntPtr value);
 

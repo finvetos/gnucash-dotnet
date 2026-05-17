@@ -66,6 +66,8 @@ GnuCash.DotNet.Bridge validate-session --book-path "D:\books\sample.gnucash" --j
 
 The bridge configures process-local GnuCash runtime state before opening a native session. In particular it points GnuCash binreloc at the installed prefix, runs GnuCash environment setup, initializes the module system, initializes the engine, normalizes Windows paths to `file:` URIs, and then calls `qof_session_begin` with `SESSION_READ_ONLY`.
 
+Successful native session validation returns the native session file path, session URL, root account presence, and native counts for accounts, commodities, and transactions. These counts are parity smoke signals; richer SDK models still hide native pointers behind bridge-owned contracts.
+
 The first transport is newline-delimited JSON over stdio because it is simple to launch, test, and package with the SDK. Named pipes can still be added later if the protocol needs long-running multiplexed sessions.
 
 SDK startup path:

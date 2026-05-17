@@ -124,6 +124,8 @@ public sealed class SpectreCliRenderer : ICliRenderer
         table.AddRow("Session URL", Markup.Escape(status.SessionUrl ?? "unknown"));
         table.AddRow("Has book", status.HasBook ? "Yes" : "No");
         table.AddRow("Has root", status.HasRootAccount ? "Yes" : "No");
+        table.AddRow("Accounts", status.AccountCount?.ToString() ?? "unknown");
+        table.AddRow("Commodities", status.CommodityCount?.ToString() ?? "unknown");
         table.AddRow("Transactions", status.TransactionCount?.ToString() ?? "unknown");
         table.AddRow("Backend error", status.BackendErrorCode?.ToString() ?? "none");
         table.AddRow("Backend message", Markup.Escape(status.BackendErrorMessage ?? "none"));

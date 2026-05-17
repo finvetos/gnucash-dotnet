@@ -168,6 +168,16 @@ public sealed class PlainCliRenderer : ICliRenderer
         writer.WriteLine($"Has book:     {(status.HasBook ? "Yes" : "No")}");
         writer.WriteLine($"Has root:     {(status.HasRootAccount ? "Yes" : "No")}");
 
+        if (status.AccountCount is not null)
+        {
+            writer.WriteLine($"Accounts:     {status.AccountCount}");
+        }
+
+        if (status.CommodityCount is not null)
+        {
+            writer.WriteLine($"Commodities:  {status.CommodityCount}");
+        }
+
         if (status.TransactionCount is not null)
         {
             writer.WriteLine($"Transactions: {status.TransactionCount}");
