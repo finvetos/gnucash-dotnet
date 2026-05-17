@@ -25,6 +25,8 @@ Use ArchUnitNET for exact boundaries. Use Sentrux for whole-codebase structural 
 
 Default rules include production-to-test dependency protection, test-tooling leakage checks, and namespace/layer drift checks where the template has enough structure to assert them. Add project-specific rules as the architecture grows.
 
+The architecture test suite also validates `gnucash-dotnet-docs/capabilities/capability-coverage.json`. This is the first coverage gate for maximum non-UI API coverage: capability ids must be unique, statuses must be known, supported entries must name verification evidence, write-supported entries must name save/reopen or validator evidence, and every current bridge protocol command must be represented in the matrix.
+
 The release workflow builds Sentrux, then runs `tools/release.ps1`. That script runs restore, build, `dotnet test` with the ArchUnitNET suites, and `tools/check.ps1 -RequireSentrux` before packages or release artifacts are produced.
 
 Release CI also runs `tools/package-smoke.ps1`, a minimal regression test that consumes the produced NuGet package from a temporary console app and verifies the packaged bridge can be started by the SDK.

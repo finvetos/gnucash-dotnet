@@ -1,0 +1,431 @@
+{
+  "version": 1,
+  "updated": "2026-05-17",
+  "statuses": [
+    "sdk-supported",
+    "bridge-supported",
+    "read-only",
+    "write-supported",
+    "import-export",
+    "deferred",
+    "not-viable-with-stock-install",
+    "excluded-ui",
+    "not-assessed"
+  ],
+  "capabilities": [
+    {
+      "id": "bridge.protocol-handshake",
+      "domain": "Bridge",
+      "name": "Bridge protocol handshake and shutdown",
+      "status": "bridge-supported",
+      "surface": "BridgeRequestKind.Ping; BridgeRequestKind.Shutdown",
+      "evidence": "GnuCashClientTests.CreatesPingRequestForCurrentProtocol",
+      "verification": "Protocol regression test"
+    },
+    {
+      "id": "install.locate",
+      "domain": "Installation",
+      "name": "Locate official GnuCash install",
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.ValidateInstallationAsync; BridgeRequestKind.LocateGnuCash",
+      "evidence": "GnuCashClientTests.ValidateInstallationAsyncUsesBridgeHeadlessProtocol",
+      "verification": "Headless bridge regression test"
+    },
+    {
+      "id": "install.validate-native-api",
+      "domain": "Installation",
+      "name": "Validate required native exports",
+      "status": "bridge-supported",
+      "surface": "validate-api CLI; BridgeRequestKind.ValidateNativeApi",
+      "evidence": "GnuCashNativeApiProbe; CliApplicationTests",
+      "verification": "Local win-x86 smoke against GnuCash 5.13"
+    },
+    {
+      "id": "install.export-inventory",
+      "domain": "Installation",
+      "name": "Inventory stock installer exports",
+      "status": "deferred",
+      "surface": "Planned M12 command or script",
+      "evidence": "M12 scope",
+      "verification": ""
+    },
+    {
+      "id": "book.open",
+      "domain": "Book",
+      "name": "Open existing book",
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.OpenBookAsync; BridgeRequestKind.OpenBook",
+      "evidence": "GnuCashClientTests.OpenBookAsyncReturnsReadOnlyBookHandleUsingBridgeProtocol",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "book.native-read",
+      "domain": "Book",
+      "name": "Read core book data through native engine",
+      "status": "bridge-supported",
+      "surface": "GnuCashBookReadMode.Native; GnuCashNativeBookReader; BridgeRequestKind.ValidateNativeSession; BridgeRequestKind.ValidateNativeReadParity; BridgeRequestKind.ValidateNativeWriteRoundTrip",
+      "evidence": "M10 native read routing",
+      "verification": "Native smoke against stock GnuCash 5.13"
+    },
+    {
+      "id": "book.create",
+      "domain": "Book",
+      "name": "Create new book",
+      "status": "deferred",
+      "surface": "Planned book lifecycle API",
+      "evidence": "M11 and M12 scope",
+      "verification": ""
+    },
+    {
+      "id": "book.backup-restore",
+      "domain": "Book",
+      "name": "Backup and restore book",
+      "status": "deferred",
+      "surface": "Planned source-write safety API",
+      "evidence": "M11 safer source-book writes",
+      "verification": ""
+    },
+    {
+      "id": "book.backend-classification",
+      "domain": "Book",
+      "name": "Detect and classify backend type",
+      "status": "read-only",
+      "surface": "GnuCashBookInfo.FileFormat",
+      "evidence": "GnuCashBookReader and native reader summaries",
+      "verification": "Book open regression tests"
+    },
+    {
+      "id": "accounts.list-query",
+      "domain": "Accounts",
+      "name": "List and query accounts",
+      "status": "sdk-supported",
+      "surface": "GnuCashBook.ListAccountsAsync; GetAccountByIdAsync; BridgeRequestKind.ListAccounts",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "accounts.balances",
+      "domain": "Accounts",
+      "name": "Account balance snapshots",
+      "status": "sdk-supported",
+      "surface": "GnuCashBook.ListAccountBalancesAsync; GetAccountBalanceAsync",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanCalculateAccountBalances",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "accounts.write",
+      "domain": "Accounts",
+      "name": "Create and update accounts",
+      "status": "deferred",
+      "surface": "Planned book lifecycle API",
+      "evidence": "M11 book lifecycle scope",
+      "verification": ""
+    },
+    {
+      "id": "commodities.list",
+      "domain": "Commodities",
+      "name": "List currencies and securities",
+      "status": "sdk-supported",
+      "surface": "GnuCashBook.ListCommoditiesAsync; ListSecuritiesAsync; BridgeRequestKind.ListCommodities",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "prices.read",
+      "domain": "Prices",
+      "name": "Read and query price database",
+      "status": "sdk-supported",
+      "surface": "GnuCashBook.ListPricesAsync; ListLatestPricesAsync; BridgeRequestKind.ListPrices",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "prices.write",
+      "domain": "Prices",
+      "name": "Write prices",
+      "status": "deferred",
+      "surface": "Planned investment and currency API",
+      "evidence": "M11 investment writes",
+      "verification": ""
+    },
+    {
+      "id": "transactions.list-query",
+      "domain": "Transactions",
+      "name": "List and query transactions and splits",
+      "status": "sdk-supported",
+      "surface": "GnuCashBook.ListTransactionsAsync; BridgeRequestKind.ListTransactions",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "transactions.create-copied-book",
+      "domain": "Transactions",
+      "name": "Create transaction in copied book",
+      "status": "write-supported",
+      "surface": "CreateTransactionInCopiedBookAsync; BridgeRequestKind.ValidateNativeTransactionWrite",
+      "evidence": "GnuCashBookTransactionWriteTests",
+      "verification": "Native save/reopen validator and local native smoke"
+    },
+    {
+      "id": "transactions.batch-create-copied-book",
+      "domain": "Transactions",
+      "name": "Create transaction batch in copied book",
+      "status": "write-supported",
+      "surface": "CreateTransactionsInCopiedBookAsync; BridgeRequestKind.ValidateNativeTransactionBatchWrite",
+      "evidence": "M11 CSV apply foundation",
+      "verification": "Native batch save/reopen validator and SDK regression test"
+    },
+    {
+      "id": "transactions.source-write",
+      "domain": "Transactions",
+      "name": "Write directly to source book",
+      "status": "deferred",
+      "surface": "Blocked pending write intent and backup controls",
+      "evidence": "M11 safer source-book writes",
+      "verification": ""
+    },
+    {
+      "id": "transactions.lots",
+      "domain": "Transactions",
+      "name": "Lots and cost basis",
+      "status": "not-assessed",
+      "surface": "Native research required",
+      "evidence": "M11 investment writes",
+      "verification": ""
+    },
+    {
+      "id": "reconciliation.read",
+      "domain": "Reconciliation",
+      "name": "Read reconciliation state and balances",
+      "status": "sdk-supported",
+      "surface": "ListReconciliationSummariesAsync; PreviewReconciliationAsync",
+      "evidence": "GnuCashBookReconciliationPreviewTests",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "reconciliation.write",
+      "domain": "Reconciliation",
+      "name": "Mark splits cleared or reconciled",
+      "status": "deferred",
+      "surface": "Planned copied-book native validator",
+      "evidence": "M11 reconciliation write",
+      "verification": ""
+    },
+    {
+      "id": "imports.csv-preview",
+      "domain": "Imports",
+      "name": "CSV transaction preview",
+      "status": "sdk-supported",
+      "surface": "PreviewCsvTransactionImportAsync",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanPreviewCsvTransactionImport",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "imports.csv-analysis",
+      "domain": "Imports",
+      "name": "CSV duplicate and match analysis",
+      "status": "sdk-supported",
+      "surface": "AnalyzeCsvTransactionImportAsync",
+      "evidence": "GnuCashBookImportAnalysisTests",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "imports.csv-apply-copied-book",
+      "domain": "Imports",
+      "name": "CSV apply into copied book",
+      "status": "write-supported",
+      "surface": "ApplyCsvTransactionImportToCopiedBookAsync",
+      "evidence": "M11 CSV apply foundation",
+      "verification": "Native batch save/reopen validator and SDK regression test"
+    },
+    {
+      "id": "imports.ofx-qfx",
+      "domain": "Imports",
+      "name": "OFX/QFX preview and apply",
+      "status": "deferred",
+      "surface": "Planned import format expansion",
+      "evidence": "M11 import formats",
+      "verification": ""
+    },
+    {
+      "id": "imports.qif",
+      "domain": "Imports",
+      "name": "QIF preview and apply",
+      "status": "deferred",
+      "surface": "Planned import format expansion",
+      "evidence": "M11 import formats",
+      "verification": ""
+    },
+    {
+      "id": "imports.csv-prices",
+      "domain": "Imports",
+      "name": "CSV price import",
+      "status": "deferred",
+      "surface": "Planned import format expansion",
+      "evidence": "M11 import formats",
+      "verification": ""
+    },
+    {
+      "id": "reports.account-summary",
+      "domain": "Reports",
+      "name": "Account summary report",
+      "status": "sdk-supported",
+      "surface": "CreateAccountSummaryReportAsync; GnuCashReportSerializer",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanCreateAccountSummaryReport",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "reports.transaction",
+      "domain": "Reports",
+      "name": "Transaction report",
+      "status": "sdk-supported",
+      "surface": "CreateTransactionReportAsync; GnuCashReportSerializer",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanCreateTransactionReport",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "reports.financial-statements",
+      "domain": "Reports",
+      "name": "Trial balance, income statement, balance sheet, cash flow",
+      "status": "sdk-supported",
+      "surface": "Structured report APIs",
+      "evidence": "M3 structured reports",
+      "verification": "Report regression tests"
+    },
+    {
+      "id": "reports.portfolio",
+      "domain": "Reports",
+      "name": "Portfolio and security valuation reports",
+      "status": "deferred",
+      "surface": "Planned reporting expansion",
+      "evidence": "M11 reporting expansion",
+      "verification": ""
+    },
+    {
+      "id": "business.customers",
+      "domain": "Business",
+      "name": "Customers",
+      "status": "write-supported",
+      "surface": "ListCustomersAsync; CreateCustomerInCopiedBookAsync; BridgeRequestKind.ListCustomers; BridgeRequestKind.ValidateNativeCustomerWrite",
+      "evidence": "GnuCashBookBusinessTests",
+      "verification": "Native customer save/reopen validator"
+    },
+    {
+      "id": "business.vendors",
+      "domain": "Business",
+      "name": "Vendors",
+      "status": "deferred",
+      "surface": "Planned native read/list and write validators",
+      "evidence": "M11 business reads",
+      "verification": ""
+    },
+    {
+      "id": "business.invoices-bills",
+      "domain": "Business",
+      "name": "Invoices, bills, entries, posting, payments",
+      "status": "deferred",
+      "surface": "Planned native workflow validators",
+      "evidence": "M11 full business workflow",
+      "verification": ""
+    },
+    {
+      "id": "business.terms-tax",
+      "domain": "Business",
+      "name": "Terms and tax tables",
+      "status": "deferred",
+      "surface": "Planned native read/list and write validators",
+      "evidence": "M11 full business workflow",
+      "verification": ""
+    },
+    {
+      "id": "investments.securities-read",
+      "domain": "Investments",
+      "name": "Securities and prices read path",
+      "status": "sdk-supported",
+      "surface": "ListSecuritiesAsync; ListPricesAsync",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices",
+      "verification": "SDK regression test"
+    },
+    {
+      "id": "investments.buy-sell-dividend",
+      "domain": "Investments",
+      "name": "Buy, sell, dividend, stock split workflows",
+      "status": "deferred",
+      "surface": "Planned investment write helpers",
+      "evidence": "M11 investment writes",
+      "verification": ""
+    },
+    {
+      "id": "currency.multi-currency",
+      "domain": "Currency",
+      "name": "Multi-currency transactions and valuation",
+      "status": "deferred",
+      "surface": "Planned multi-currency workflows",
+      "evidence": "M11 multi-currency workflows",
+      "verification": ""
+    },
+    {
+      "id": "backends.xml",
+      "domain": "Backends",
+      "name": "XML and compressed XML books",
+      "status": "read-only",
+      "surface": "GnuCashBookReader",
+      "evidence": "Bridge XML reader tests",
+      "verification": "Bridge regression tests"
+    },
+    {
+      "id": "backends.sqlite",
+      "domain": "Backends",
+      "name": "SQLite-backed books",
+      "status": "deferred",
+      "surface": "Planned backend coverage",
+      "evidence": "M11 backend coverage",
+      "verification": ""
+    },
+    {
+      "id": "backends.database",
+      "domain": "Backends",
+      "name": "Database-backed books",
+      "status": "not-assessed",
+      "surface": "Requires stock installer driver research",
+      "evidence": "M11 backend coverage",
+      "verification": ""
+    },
+    {
+      "id": "scheduled.transactions",
+      "domain": "Scheduled",
+      "name": "Scheduled transactions",
+      "status": "not-assessed",
+      "surface": "Native research required",
+      "evidence": "M12 capability atlas",
+      "verification": ""
+    },
+    {
+      "id": "budgets.read-write",
+      "domain": "Budgets",
+      "name": "Budgets",
+      "status": "not-assessed",
+      "surface": "Native research required",
+      "evidence": "M12 capability atlas",
+      "verification": ""
+    },
+    {
+      "id": "slots.metadata",
+      "domain": "Metadata",
+      "name": "Slots, notes, and custom metadata",
+      "status": "not-assessed",
+      "surface": "Native research required",
+      "evidence": "M12 capability atlas",
+      "verification": ""
+    },
+    {
+      "id": "preferences.gui",
+      "domain": "Preferences",
+      "name": "GUI preferences and window state",
+      "status": "excluded-ui",
+      "surface": "Excluded from SDK",
+      "evidence": "Project scope excludes desktop UI behavior",
+      "verification": "Classified as UI-only"
+    }
+  ]
+}

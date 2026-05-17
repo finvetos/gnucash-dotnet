@@ -313,6 +313,24 @@ Target:
 
 Detailed journal: [M11 Full Accounting Workflows](milestones/m11-full-accounting-workflows.md).
 
+### M12 - Maximum Non-UI API Coverage
+
+Status: in progress.
+
+Target:
+
+- Capability atlas for all non-UI GnuCash domains.
+- Machine-readable coverage matrix.
+- Coverage validation tests.
+- Stock installer export inventory.
+- Domain binding campaigns guided by coverage status.
+- Real native fixtures for write smoke tests.
+- Release readiness checks for coverage drift.
+
+Detailed journal: [M12 Maximum Non-UI API Coverage](milestones/m12-maximum-non-ui-api-coverage.md).
+
+Coverage atlas: [Non-UI Capability Atlas](capabilities/non-ui-capability-atlas.md).
+
 ## Journal
 
 Early roadmap notes now live in
