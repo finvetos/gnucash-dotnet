@@ -4,3 +4,4 @@ package:
   expectedArtifacts:
     - releases/packages/*.nupkg
     - releases/packages/*.snupkg
+    - releases/publish/bridge-win-x86/GnuCash.DotNet.Bridge.exe

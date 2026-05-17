@@ -52,6 +52,8 @@ pwsh -File .\tools\check.ps1
 
 The repository follows the Heurex .NET template standards: central package management, GitVersion, xUnit v3, ArchUnitNET, Sentrux structural checks, and release run manifests.
 
+Release builds are SemVer-stamped by GitVersion and require strong-name signing through the CI signing secret. The release pipeline also runs a package smoke regression to make sure a consumer app can install the produced package and launch the bundled bridge.
+
 ## Contributing
 
 This project is public from the beginning, but broad community contribution is intentionally paused until the first usable SDK release. Read [How to Contribute.md](How%20to%20Contribute.md) before opening issues or pull requests.

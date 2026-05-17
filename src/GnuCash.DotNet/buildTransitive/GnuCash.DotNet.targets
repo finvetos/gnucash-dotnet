@@ -1,0 +1,25 @@
+<Project>
+  <ItemGroup Condition="'$(GnuCashDotNetCopyBridge)' != 'false'">
+    <_GnuCashDotNetBridgeFiles Include="$(MSBuildThisFileDirectory)..\tools\bridge\win-x86\**\*.*" />
+  </ItemGroup>
+
+  <Target
+    Name="GnuCashDotNetCopyBridgeToOutput"
+    AfterTargets="Build"
+    Condition="'$(GnuCashDotNetCopyBridge)' != 'false' and '@(_GnuCashDotNetBridgeFiles)' != ''">
+    <Copy
+      SourceFiles="@(_GnuCashDotNetBridgeFiles)"
+      DestinationFiles="@(_GnuCashDotNetBridgeFiles->'$(OutDir)GnuCash.DotNet.Bridge\win-x86\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target
+    Name="GnuCashDotNetCopyBridgeToPublish"
+    AfterTargets="Publish"
+    Condition="'$(GnuCashDotNetCopyBridge)' != 'false' and '@(_GnuCashDotNetBridgeFiles)' != '' and '$(PublishDir)' != ''">
+    <Copy
+      SourceFiles="@(_GnuCashDotNetBridgeFiles)"
+      DestinationFiles="@(_GnuCashDotNetBridgeFiles->'$(PublishDir)GnuCash.DotNet.Bridge\win-x86\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

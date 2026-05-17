@@ -12,6 +12,12 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Finvetos contributors</Authors>
     <Company>Finvetos</Company>
+    <Copyright>Copyright (c) Finvetos</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <SignAssembly Condition="'$(GnuCashDotNetStrongNameKeyFile)' != ''">true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="'$(GnuCashDotNetStrongNameKeyFile)' != ''">$(GnuCashDotNetStrongNameKeyFile)</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <HeurexTemplateBuildRoot Condition="'$(HeurexTemplateBuildRoot)' == '' and '$(HEUREX_TEMPLATE_BUILD_ROOT)' != ''">$(HEUREX_TEMPLATE_BUILD_ROOT)</HeurexTemplateBuildRoot>

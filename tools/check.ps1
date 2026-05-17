@@ -5,7 +5,9 @@ param(
   [switch] $SaveBaseline,
   [switch] $SkipSentrux,
   [switch] $RequireSentrux,
-  [switch] $DisableGitVersion
+  [switch] $DisableGitVersion,
+  [string] $StrongNameKeyFile = $env:GNUCASH_DOTNET_STRONG_NAME_KEY_FILE,
+  [switch] $RequireStrongName
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +19,13 @@ Set-Location $repoRoot
 $msbuildArgs = @()
 if ($DisableGitVersion) {
   $msbuildArgs += "-p:HeurexUseGitVersion=false"
+}
+if (-not [string]::IsNullOrWhiteSpace($StrongNameKeyFile)) {
+  $msbuildArgs += "-p:GnuCashDotNetStrongNameKeyFile=$StrongNameKeyFile"
+}
+if ($RequireStrongName) {
+  $msbuildArgs += "-p:GnuCashDotNetRequireStrongName=true"
+  $env:GNUCASH_DOTNET_EXPECT_SIGNED = "true"
 }
 
 function Step([string] $Label, [scriptblock] $Block) {

@@ -2,6 +2,8 @@
 
 This repository uses SemVer with GitVersion.
 
+GitVersion.MsBuild is referenced centrally, so normal `dotnet build`, `dotnet pack`, and release workflow runs stamp assembly and NuGet versions automatically from the Git history. GitHub Actions uses full checkout history (`fetch-depth: 0`) so tags and commit-message increments are visible during CI/CD.
+
 ## Stable Releases
 
 Tag stable releases with a `v` prefix:
@@ -13,7 +15,7 @@ git push origin v0.1.0
 
 ## Commit Messages
 
-GitVersion can increment versions from Conventional Commits:
+GitVersion increments versions from Conventional Commits:
 
 ```text
 feat: add list command
@@ -54,3 +56,5 @@ It also accepts explicit directives:
 ```powershell
 .\tools\version.ps1
 ```
+
+Release workflow tags still use `v` prefixes, but the computed SemVer is owned by GitVersion. Do not hard-code package versions in CI scripts.

@@ -41,6 +41,32 @@ releases/packages
 
 When `HEUREX_TEMPLATE_BUILD_ROOT` is configured, packages are written under `<external-build-root>/dotnet/packages/<repo-name>` instead.
 
+`tools/pack.ps1` publishes the bridge as `win-x86` before packing. The SDK package includes the bridge under `tools/bridge/win-x86` plus a `buildTransitive` target that copies it to the consuming app output under:
+
+```text
+GnuCash.DotNet.Bridge/win-x86
+```
+
+## Package Smoke Regression
+
+Run the lightweight consumer smoke test after packing:
+
+```powershell
+.\tools\package-smoke.ps1
+```
+
+The smoke test creates a temporary console app, installs the local `GnuCash.DotNet` package, verifies the packaged bridge is copied to the consumer output, and calls `ValidateInstallationAsync()` against a fake GnuCash installation shape.
+
+## Release Signing
+
+Release builds require strong-name signing. Store the private key as a GitHub Actions secret:
+
+```text
+GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64
+```
+
+The release workflow decodes that secret into a temporary key file, passes it to MSBuild through `GnuCashDotNetStrongNameKeyFile`, and sets `GnuCashDotNetRequireStrongName=true`. Architecture tests assert that release assemblies are strong-name signed when `GNUCASH_DOTNET_EXPECT_SIGNED=true`.
+
 ## Publish
 
 Publish only from a deliberate release or preview gate. Avoid publishing every local AI-assisted edit.

@@ -44,3 +44,11 @@ SDK startup path:
 4. The bridge returns a `GnuCashInstallationStatus` payload that callers can show directly or use as a readiness gate before opening a book.
 
 The SDK can launch either a published `GnuCash.DotNet.Bridge.exe` or a development `GnuCash.DotNet.Bridge.dll` through `dotnet`. Production packages should prefer the `win-x86` executable so the bridge can load the official Windows GnuCash runtime.
+
+NuGet packages copy the published bridge into consuming app outputs at:
+
+```text
+GnuCash.DotNet.Bridge/win-x86/GnuCash.DotNet.Bridge.exe
+```
+
+The SDK probes that packaged location before falling back to legacy/dev locations or an explicit `GnuCash:BridgeExecutablePath`.

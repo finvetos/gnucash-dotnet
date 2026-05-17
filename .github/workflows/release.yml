@@ -15,6 +15,7 @@ jobs:
     runs-on: windows-latest
     env:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      GNUCASH_DOTNET_EXPECT_SIGNED: true
 
     steps:
       - name: Checkout
@@ -27,14 +28,28 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Restore strong-name key
+        shell: pwsh
+        env:
+          GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64: ${{ secrets.GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64)) {
+            throw "Missing repository secret GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64."
+          }
+
+          New-Item -ItemType Directory -Force -Path .\.signing | Out-Null
+          $keyPath = Join-Path (Resolve-Path .\.signing) "GnuCash.DotNet.snk"
+          [IO.File]::WriteAllBytes($keyPath, [Convert]::FromBase64String($env:GNUCASH_DOTNET_STRONG_NAME_KEY_BASE64))
+          "GNUCASH_DOTNET_STRONG_NAME_KEY_FILE=$keyPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Build Sentrux
         run: pwsh -File ./tools/build-sentrux.ps1
 
-      - name: Release gates and pack
-        run: pwsh -File ./tools/release.ps1 -Configuration Release
+      - name: Release gates, publish bridge, and pack
+        run: pwsh -File ./tools/release.ps1 -Configuration Release -RequireStrongName
 
-      - name: Publish bridge win-x86
-        run: dotnet publish src/GnuCash.DotNet.Bridge/GnuCash.DotNet.Bridge.csproj --configuration Release --runtime win-x86 --no-self-contained --output releases/publish/bridge-win-x86
+      - name: Package smoke regression
+        run: pwsh -File ./tools/package-smoke.ps1 -Configuration Release
 
       - name: Smoke test bridge
         run: releases/publish/bridge-win-x86/GnuCash.DotNet.Bridge.exe ping --json

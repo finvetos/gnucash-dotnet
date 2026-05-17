@@ -36,4 +36,20 @@
   <ItemGroup>
     <ProjectReference Include="..\GnuCash.DotNet.Protocol\GnuCash.DotNet.Protocol.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None
+      Include="buildTransitive\GnuCash.DotNet.targets"
+      Pack="true"
+      PackagePath="buildTransitive\GnuCash.DotNet.targets"
+      Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(GnuCashDotNetBridgePublishPath)' != ''">
+    <None
+      Include="$(GnuCashDotNetBridgePublishPath)\**\*"
+      Pack="true"
+      PackagePath="tools\bridge\win-x86\%(RecursiveDir)%(Filename)%(Extension)"
+      Visible="false" />
+  </ItemGroup>
 </Project>

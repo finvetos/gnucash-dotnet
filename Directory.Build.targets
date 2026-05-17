@@ -1,0 +1,13 @@
+<Project>
+  <Target
+    Name="GnuCashDotNetValidateSigningConfiguration"
+    BeforeTargets="CoreCompile"
+    Condition="'$(GnuCashDotNetRequireStrongName)' == 'true'">
+    <Error
+      Condition="'$(GnuCashDotNetStrongNameKeyFile)' == ''"
+      Text="GnuCashDotNetRequireStrongName is true, but GnuCashDotNetStrongNameKeyFile was not supplied." />
+    <Error
+      Condition="'$(GnuCashDotNetStrongNameKeyFile)' != '' and !Exists('$(GnuCashDotNetStrongNameKeyFile)')"
+      Text="Strong-name key file does not exist: $(GnuCashDotNetStrongNameKeyFile)" />
+  </Target>
+</Project>

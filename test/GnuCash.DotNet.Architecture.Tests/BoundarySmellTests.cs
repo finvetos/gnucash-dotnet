@@ -135,6 +135,39 @@ public sealed class BoundarySmellTests
         residueTypes.Should().BeEmpty("template residue tends to spread into public API and docs");
     }
 
+    [Fact]
+    public void ProductionAssembliesShouldCarryFinvetosCopyright()
+    {
+        var missingCopyright = ProductionAssemblies
+            .Where(assembly => assembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright !=
+                               "Copyright (c) Finvetos")
+            .Select(assembly => assembly.GetName().Name)
+            .Order()
+            .ToArray();
+
+        missingCopyright.Should().BeEmpty("released assemblies should carry the project copyright metadata");
+    }
+
+    [Fact]
+    public void ProductionAssembliesShouldBeStrongNamedWhenReleaseSigningIsExpected()
+    {
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("GNUCASH_DOTNET_EXPECT_SIGNED"),
+                "true",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var unsignedAssemblies = ProductionAssemblies
+            .Where(assembly => assembly.GetName().GetPublicKeyToken() is not { Length: > 0 })
+            .Select(assembly => assembly.GetName().Name)
+            .Order()
+            .ToArray();
+
+        unsignedAssemblies.Should().BeEmpty("release CI requires strong-name-signed production assemblies");
+    }
+
     private static void AssertDoesNotReferenceAssemblies(
         ReflectionAssembly sourceAssembly,
         params string[] forbiddenAssemblyNames)

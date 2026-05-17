@@ -26,3 +26,5 @@ Use ArchUnitNET for exact boundaries. Use Sentrux for whole-codebase structural 
 Default rules include production-to-test dependency protection, test-tooling leakage checks, and namespace/layer drift checks where the template has enough structure to assert them. Add project-specific rules as the architecture grows.
 
 The release workflow builds Sentrux, then runs `tools/release.ps1`. That script runs restore, build, `dotnet test` with the ArchUnitNET suites, and `tools/check.ps1 -RequireSentrux` before packages or release artifacts are produced.
+
+Release CI also runs `tools/package-smoke.ps1`, a minimal regression test that consumes the produced NuGet package from a temporary console app and verifies the packaged bridge can be started by the SDK.

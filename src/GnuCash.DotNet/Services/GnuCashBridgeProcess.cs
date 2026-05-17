@@ -142,6 +142,8 @@ internal sealed class GnuCashBridgeProcess
         var baseDirectory = AppContext.BaseDirectory;
         var candidates = new[]
         {
+            Path.Combine(baseDirectory, "GnuCash.DotNet.Bridge", "win-x86", "GnuCash.DotNet.Bridge.exe"),
+            Path.Combine(baseDirectory, "GnuCash.DotNet.Bridge", "win-x86", "GnuCash.DotNet.Bridge.dll"),
             Path.Combine(baseDirectory, "GnuCash.DotNet.Bridge.exe"),
             Path.Combine(baseDirectory, "GnuCash.DotNet.Bridge.dll"),
             Path.Combine(baseDirectory, "bridge-win-x86", "GnuCash.DotNet.Bridge.exe"),
