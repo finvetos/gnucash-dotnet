@@ -88,6 +88,9 @@ public sealed class CliApplication
         root.Subcommands.Add(BuildValidateCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeApiCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeSessionCommand(renderer));
+        root.Subcommands.Add(BuildValidateNativeReadParityCommand(renderer));
+        root.Subcommands.Add(BuildValidateNativeWriteRoundTripCommand(renderer));
+        root.Subcommands.Add(BuildValidateNativeCustomerWriteCommand(renderer));
         root.Subcommands.Add(BuildHeadlessCommand(input, output, error));
 
         return root;
@@ -210,6 +213,128 @@ public sealed class CliApplication
             var installPath = parseResult.GetValue(installPathOption);
             var status = new GnuCashNativeSession().ValidateReadOnlyOpen(bookPath, installPath);
             renderer.WriteNativeSessionValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateNativeReadParityCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Validate a specific GnuCash installation path."
+        };
+        var bookPathOption = new Option<string?>("--book-path")
+        {
+            Description = "Compare native reads for this GnuCash book against the XML reader."
+        };
+        var command = new Command("validate-read-parity", "Compare native core book reads.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.Options.Add(bookPathOption);
+        command.SetAction(parseResult =>
+        {
+            var bookPath = parseResult.GetValue(bookPathOption);
+            if (string.IsNullOrWhiteSpace(bookPath))
+            {
+                throw new ArgumentException("A --book-path value is required.");
+            }
+
+            var installPath = parseResult.GetValue(installPathOption);
+            var status = new GnuCashNativeReadParityChecker().Validate(bookPath, installPath);
+            renderer.WriteNativeReadParityValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateNativeWriteRoundTripCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Validate a specific GnuCash installation path."
+        };
+        var sourceBookPathOption = new Option<string?>("--source-book-path")
+        {
+            Description = "Copy this GnuCash book, save the copy, and reopen it."
+        };
+        var workingBookPathOption = new Option<string?>("--working-book-path")
+        {
+            Description = "Optional destination for the copied validation book."
+        };
+        var command = new Command("validate-write-roundtrip", "Save and reopen a copied book through the native engine.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.Options.Add(sourceBookPathOption);
+        command.Options.Add(workingBookPathOption);
+        command.SetAction(parseResult =>
+        {
+            var sourceBookPath = parseResult.GetValue(sourceBookPathOption);
+            if (string.IsNullOrWhiteSpace(sourceBookPath))
+            {
+                throw new ArgumentException("A --source-book-path value is required.");
+            }
+
+            var status = new GnuCashNativeWriteRoundTripValidator().Validate(
+                sourceBookPath,
+                parseResult.GetValue(workingBookPathOption),
+                parseResult.GetValue(installPathOption));
+            renderer.WriteNativeWriteRoundTripValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateNativeCustomerWriteCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path");
+        var sourceBookPathOption = new Option<string?>("--source-book-path");
+        var workingBookPathOption = new Option<string?>("--working-book-path");
+        var customerIdOption = new Option<string?>("--customer-id");
+        var customerNameOption = new Option<string?>("--customer-name");
+        var currencySpaceOption = new Option<string>("--currency-space")
+        {
+            DefaultValueFactory = _ => "CURRENCY"
+        };
+        var currencyIdOption = new Option<string>("--currency-id")
+        {
+            DefaultValueFactory = _ => "USD"
+        };
+        var command = new Command("validate-customer-write", "Create a customer in a copied book.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.Options.Add(sourceBookPathOption);
+        command.Options.Add(workingBookPathOption);
+        command.Options.Add(customerIdOption);
+        command.Options.Add(customerNameOption);
+        command.Options.Add(currencySpaceOption);
+        command.Options.Add(currencyIdOption);
+        command.SetAction(parseResult =>
+        {
+            var sourceBookPath = parseResult.GetValue(sourceBookPathOption);
+            var customerId = parseResult.GetValue(customerIdOption);
+            var customerName = parseResult.GetValue(customerNameOption);
+            if (string.IsNullOrWhiteSpace(sourceBookPath) ||
+                string.IsNullOrWhiteSpace(customerId) ||
+                string.IsNullOrWhiteSpace(customerName))
+            {
+                throw new ArgumentException(
+                    "--source-book-path, --customer-id, and --customer-name values are required.");
+            }
+
+            var request = new GnuCashNativeCustomerWriteRequest(
+                sourceBookPath,
+                customerId,
+                customerName,
+                parseResult.GetValue(currencySpaceOption) ?? "CURRENCY",
+                parseResult.GetValue(currencyIdOption) ?? "USD",
+                parseResult.GetValue(workingBookPathOption),
+                parseResult.GetValue(installPathOption));
+            var status = new GnuCashNativeCustomerWriteValidator().Validate(request);
+            renderer.WriteNativeCustomerWriteValidation(status);
             return status.IsReady ? 0 : 1;
         });
 

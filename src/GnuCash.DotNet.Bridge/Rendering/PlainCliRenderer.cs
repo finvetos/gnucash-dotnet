@@ -197,6 +197,104 @@ public sealed class PlainCliRenderer : ICliRenderer
         writer.WriteLine(status.Message);
     }
 
+    public void WriteNativeReadParityValidation(GnuCashNativeReadParityStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native read parity validation");
+        writer.WriteLine("-------------------------------------");
+        writer.WriteLine($"Status:       {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Callable now: {(status.CanCallFromCurrentProcess ? "Yes" : "No")}");
+        writer.WriteLine($"Architecture: {status.ProcessArchitecture}");
+        writer.WriteLine($"Book:         {status.BookPath}");
+        WriteOptional("Path", status.InstallPath);
+        WriteOptional("Engine", status.EnginePath);
+        WriteOptional("Version", status.DisplayVersion);
+        WriteOptional("Native book", status.NativeBookId);
+        WriteOptional("XML book", status.XmlBookId);
+        WriteOptional("Native acct", status.NativeAccountCount?.ToString());
+        WriteOptional("XML acct", status.XmlAccountCount?.ToString());
+        WriteOptional("Native cmdty", status.NativeCommodityCount?.ToString());
+        WriteOptional("XML cmdty", status.XmlCommodityCount?.ToString());
+        WriteOptional("Native txns", status.NativeTransactionCount?.ToString());
+        WriteOptional("XML txns", status.XmlTransactionCount?.ToString());
+        WriteOptional("Native splits", status.NativeSplitCount?.ToString());
+        WriteOptional("XML splits", status.XmlSplitCount?.ToString());
+        WriteOptional("Native prices", status.NativePriceCount?.ToString());
+        WriteOptional("XML prices", status.XmlPriceCount?.ToString());
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+        WriteList("Book mismatches", status.BookMismatches);
+        WriteList("Account mismatches", status.AccountMismatches);
+        WriteList("Commodity mismatches", status.CommodityMismatches);
+        WriteList("Transaction mismatches", status.TransactionMismatches);
+        WriteList("Price mismatches", status.PriceMismatches);
+    }
+
+    public void WriteNativeWriteRoundTripValidation(GnuCashNativeWriteRoundTripStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native write round-trip validation");
+        writer.WriteLine("------------------------------------------");
+        writer.WriteLine($"Status:       {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Callable now: {(status.CanCallFromCurrentProcess ? "Yes" : "No")}");
+        writer.WriteLine($"Architecture: {status.ProcessArchitecture}");
+        writer.WriteLine($"Source:       {status.SourceBookPath}");
+        writer.WriteLine($"Working:      {status.WorkingBookPath}");
+        WriteOptional("Path", status.InstallPath);
+        WriteOptional("Engine", status.EnginePath);
+        WriteOptional("Version", status.DisplayVersion);
+        WriteOptional("Before acct", status.BeforeAccountCount?.ToString());
+        WriteOptional("After acct", status.AfterAccountCount?.ToString());
+        WriteOptional("Before cmdty", status.BeforeCommodityCount?.ToString());
+        WriteOptional("After cmdty", status.AfterCommodityCount?.ToString());
+        WriteOptional("Before txns", status.BeforeTransactionCount?.ToString());
+        WriteOptional("After txns", status.AfterTransactionCount?.ToString());
+        WriteOptional("Backend err", status.BackendErrorCode?.ToString());
+        WriteOptional("Backend msg", status.BackendErrorMessage);
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+    }
+
+    public void WriteNativeCustomerWriteValidation(GnuCashNativeCustomerWriteStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native customer write validation");
+        writer.WriteLine("----------------------------------------");
+        writer.WriteLine($"Status:       {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Callable now: {(status.CanCallFromCurrentProcess ? "Yes" : "No")}");
+        writer.WriteLine($"Architecture: {status.ProcessArchitecture}");
+        writer.WriteLine($"Source:       {status.SourceBookPath}");
+        writer.WriteLine($"Working:      {status.WorkingBookPath}");
+        writer.WriteLine($"Customer:     {status.CustomerId} - {status.CustomerName}");
+        writer.WriteLine($"Currency:     {status.CurrencySpace}::{status.CurrencyId}");
+        WriteOptional("Guid", status.CreatedCustomerGuid);
+        WriteOptional("Before cust", status.BeforeCustomerCount?.ToString());
+        WriteOptional("After cust", status.AfterCustomerCount?.ToString());
+        WriteOptional("Found", status.FoundAfterReopen ? "Yes" : "No");
+        WriteOptional("Backend err", status.BackendErrorCode?.ToString());
+        WriteOptional("Backend msg", status.BackendErrorMessage);
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+    }
+
     public void WriteJson<T>(T value)
     {
         writer.WriteLine(JsonSerializer.Serialize(
@@ -216,6 +314,14 @@ public sealed class PlainCliRenderer : ICliRenderer
         foreach (var value in values)
         {
             writer.WriteLine($"  {value}");
+        }
+    }
+
+    private void WriteOptional(string name, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            writer.WriteLine($"{name + ":",-13} {value}");
         }
     }
 

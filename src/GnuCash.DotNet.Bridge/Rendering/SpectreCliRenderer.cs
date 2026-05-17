@@ -132,6 +132,105 @@ public sealed class SpectreCliRenderer : ICliRenderer
         console.Write(table);
     }
 
+    public void WriteNativeReadParityValidation(GnuCashNativeReadParityStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Native read parity is ready[/]" : "[bold red]Native read parity is not ready[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native Read Parity")
+            .Border(BoxBorder.Rounded));
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+
+        table.AddRow("Callable now", status.CanCallFromCurrentProcess ? "Yes" : "No");
+        table.AddRow("Architecture", Markup.Escape(status.ProcessArchitecture));
+        table.AddRow("Book", Markup.Escape(status.BookPath));
+        table.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+        table.AddRow("Engine", Markup.Escape(status.EnginePath ?? "unknown"));
+        table.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+        table.AddRow("Native book", Markup.Escape(status.NativeBookId ?? "unknown"));
+        table.AddRow("XML book", Markup.Escape(status.XmlBookId ?? "unknown"));
+        table.AddRow("Native accounts", status.NativeAccountCount?.ToString() ?? "unknown");
+        table.AddRow("XML accounts", status.XmlAccountCount?.ToString() ?? "unknown");
+        table.AddRow("Native commodities", status.NativeCommodityCount?.ToString() ?? "unknown");
+        table.AddRow("XML commodities", status.XmlCommodityCount?.ToString() ?? "unknown");
+        table.AddRow("Native transactions", status.NativeTransactionCount?.ToString() ?? "unknown");
+        table.AddRow("XML transactions", status.XmlTransactionCount?.ToString() ?? "unknown");
+        table.AddRow("Native splits", status.NativeSplitCount?.ToString() ?? "unknown");
+        table.AddRow("XML splits", status.XmlSplitCount?.ToString() ?? "unknown");
+        table.AddRow("Native prices", status.NativePriceCount?.ToString() ?? "unknown");
+        table.AddRow("XML prices", status.XmlPriceCount?.ToString() ?? "unknown");
+        console.Write(table);
+
+        WriteValues("Book mismatches", status.BookMismatches);
+        WriteValues("Account mismatches", status.AccountMismatches);
+        WriteValues("Commodity mismatches", status.CommodityMismatches);
+        WriteValues("Transaction mismatches", status.TransactionMismatches);
+        WriteValues("Price mismatches", status.PriceMismatches);
+    }
+
+    public void WriteNativeWriteRoundTripValidation(GnuCashNativeWriteRoundTripStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Native write round-trip is ready[/]" : "[bold red]Native write round-trip is not ready[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native Write Round-Trip")
+            .Border(BoxBorder.Rounded));
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+
+        table.AddRow("Callable now", status.CanCallFromCurrentProcess ? "Yes" : "No");
+        table.AddRow("Architecture", Markup.Escape(status.ProcessArchitecture));
+        table.AddRow("Source", Markup.Escape(status.SourceBookPath));
+        table.AddRow("Working", Markup.Escape(status.WorkingBookPath));
+        table.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+        table.AddRow("Engine", Markup.Escape(status.EnginePath ?? "unknown"));
+        table.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+        table.AddRow("Before accounts", status.BeforeAccountCount?.ToString() ?? "unknown");
+        table.AddRow("After accounts", status.AfterAccountCount?.ToString() ?? "unknown");
+        table.AddRow("Before commodities", status.BeforeCommodityCount?.ToString() ?? "unknown");
+        table.AddRow("After commodities", status.AfterCommodityCount?.ToString() ?? "unknown");
+        table.AddRow("Before transactions", status.BeforeTransactionCount?.ToString() ?? "unknown");
+        table.AddRow("After transactions", status.AfterTransactionCount?.ToString() ?? "unknown");
+        table.AddRow("Backend error", status.BackendErrorCode?.ToString() ?? "none");
+        table.AddRow("Backend message", Markup.Escape(status.BackendErrorMessage ?? "none"));
+        console.Write(table);
+    }
+
+    public void WriteNativeCustomerWriteValidation(GnuCashNativeCustomerWriteStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Native customer write is ready[/]" : "[bold red]Native customer write is not ready[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native Customer Write")
+            .Border(BoxBorder.Rounded));
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+
+        table.AddRow("Callable now", status.CanCallFromCurrentProcess ? "Yes" : "No");
+        table.AddRow("Architecture", Markup.Escape(status.ProcessArchitecture));
+        table.AddRow("Source", Markup.Escape(status.SourceBookPath));
+        table.AddRow("Working", Markup.Escape(status.WorkingBookPath));
+        table.AddRow("Customer", Markup.Escape(status.CustomerId + " - " + status.CustomerName));
+        table.AddRow("Currency", Markup.Escape(status.CurrencySpace + "::" + status.CurrencyId));
+        table.AddRow("Guid", Markup.Escape(status.CreatedCustomerGuid ?? "unknown"));
+        table.AddRow("Before customers", status.BeforeCustomerCount?.ToString() ?? "unknown");
+        table.AddRow("After customers", status.AfterCustomerCount?.ToString() ?? "unknown");
+        table.AddRow("Found after reopen", status.FoundAfterReopen ? "Yes" : "No");
+        table.AddRow("Backend error", status.BackendErrorCode?.ToString() ?? "none");
+        table.AddRow("Backend message", Markup.Escape(status.BackendErrorMessage ?? "none"));
+        console.Write(table);
+    }
+
     public void WriteJson<T>(T value)
     {
         new PlainCliRenderer(writer, json: true).WriteJson(value);

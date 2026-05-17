@@ -16,13 +16,19 @@ public sealed class BridgeRequestProcessor
     private readonly GnuCashInstallationLocator locator;
     private readonly GnuCashNativeApiProbe nativeApiProbe;
     private readonly GnuCashNativeSession nativeSession;
+    private readonly GnuCashNativeReadParityChecker nativeReadParityChecker;
+    private readonly GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator;
+    private readonly GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator;
 
     public BridgeRequestProcessor()
         : this(
             new GnuCashInstallationLocator(),
             new GnuCashBookReader(),
             new GnuCashNativeApiProbe(),
-            new GnuCashNativeSession())
+            new GnuCashNativeSession(),
+            new GnuCashNativeReadParityChecker(),
+            new GnuCashNativeWriteRoundTripValidator(),
+            new GnuCashNativeCustomerWriteValidator())
     {
     }
 
@@ -30,12 +36,18 @@ public sealed class BridgeRequestProcessor
         GnuCashInstallationLocator locator,
         GnuCashBookReader bookReader,
         GnuCashNativeApiProbe nativeApiProbe,
-        GnuCashNativeSession nativeSession)
+        GnuCashNativeSession nativeSession,
+        GnuCashNativeReadParityChecker nativeReadParityChecker,
+        GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator,
+        GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator)
     {
         this.locator = locator;
         this.bookReader = bookReader;
         this.nativeApiProbe = nativeApiProbe;
         this.nativeSession = nativeSession;
+        this.nativeReadParityChecker = nativeReadParityChecker;
+        this.nativeWriteRoundTripValidator = nativeWriteRoundTripValidator;
+        this.nativeCustomerWriteValidator = nativeCustomerWriteValidator;
     }
 
     public BridgeResponse Process(BridgeRequest request)
@@ -53,6 +65,9 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ListPrices => Succeeded(request, CreateListPricesPayload(request)),
             BridgeRequestKind.ValidateNativeApi => Succeeded(request, CreateValidateNativeApiPayload(request)),
             BridgeRequestKind.ValidateNativeSession => Succeeded(request, CreateValidateNativeSessionPayload(request)),
+            BridgeRequestKind.ValidateNativeReadParity => Succeeded(request, CreateValidateNativeReadParityPayload(request)),
+            BridgeRequestKind.ValidateNativeWriteRoundTrip => Succeeded(request, CreateValidateNativeWriteRoundTripPayload(request)),
+            BridgeRequestKind.ValidateNativeCustomerWrite => Succeeded(request, CreateValidateNativeCustomerWritePayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -96,6 +111,30 @@ public sealed class BridgeRequestProcessor
             nativeSession.ValidateReadOnlyOpen(payload.BookPath, payload.InstallPath),
             BridgeJson.SerializerOptions);
     }
+
+    private string CreateValidateNativeReadParityPayload(BridgeRequest request)
+    {
+        var payload = DeserializeNativeSessionRequest(request);
+        return JsonSerializer.Serialize(
+            nativeReadParityChecker.Validate(payload.BookPath, payload.InstallPath),
+            BridgeJson.SerializerOptions);
+    }
+
+    private string CreateValidateNativeWriteRoundTripPayload(BridgeRequest request)
+    {
+        var payload = DeserializeWriteRoundTripRequest(request);
+        return JsonSerializer.Serialize(
+            nativeWriteRoundTripValidator.Validate(
+                payload.SourceBookPath,
+                payload.WorkingBookPath,
+                payload.InstallPath),
+            BridgeJson.SerializerOptions);
+    }
+
+    private string CreateValidateNativeCustomerWritePayload(BridgeRequest request) =>
+        JsonSerializer.Serialize(
+            nativeCustomerWriteValidator.Validate(DeserializeCustomerWriteRequest(request)),
+            BridgeJson.SerializerOptions);
 
     private string CreateOpenBookPayload(BridgeRequest request)
     {
@@ -158,5 +197,31 @@ public sealed class BridgeRequestProcessor
                    request.PayloadJson,
                    BridgeJson.SerializerOptions) ??
                throw new ArgumentException("A valid native session validation request payload is required.", nameof(request));
+    }
+
+    private static GnuCashNativeWriteRoundTripRequest DeserializeWriteRoundTripRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A native write round-trip request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashNativeWriteRoundTripRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid native write round-trip request payload is required.", nameof(request));
+    }
+
+    private static GnuCashNativeCustomerWriteRequest DeserializeCustomerWriteRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A native customer write request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashNativeCustomerWriteRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid native customer write request payload is required.", nameof(request));
     }
 }

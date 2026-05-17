@@ -39,5 +39,4 @@ Date: 2026-05-17
 
 ## Next Work
 
-- Add read-only native account and commodity parity checks against the existing XML bootstrap reader.
-- Start the first disposable write workflow with customer creation, then verify by reopening through the native API.
+- Execute [M8 Native Capability Spine](m8-native-capability-spine.md), bundling native read parity, native write foundation, SDK business objects, and import/reconciliation workflows.

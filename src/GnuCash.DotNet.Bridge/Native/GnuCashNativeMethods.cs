@@ -72,10 +72,108 @@ internal static class GnuCashNativeMethods
     internal static extern IntPtr gnc_book_get_root_account(IntPtr book);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr qof_book_get_collection(
+        IntPtr book,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string entityType);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int gnc_book_count_transactions(IntPtr book);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int qof_collection_count(IntPtr collection);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void qof_collection_foreach(
+        IntPtr collection,
+        QofInstanceForeachCallback callback,
+        IntPtr userData);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int gnc_account_n_descendants(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int xaccAccountTreeForEachTransaction(
+        IntPtr account,
+        GncTransactionCallback callback,
+        IntPtr userData);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_account_n_children(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_account_nth_child(IntPtr account, int index);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_account_get_parent(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr qof_instance_get_guid(IntPtr instance);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr guid_to_string(IntPtr guid);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccAccountGetName(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccAccountGetCode(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccAccountGetDescription(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int xaccAccountGetType(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccAccountTypeEnumAsString(int accountType);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccAccountGetCommodity(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int xaccAccountGetPlaceholder(IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccTransGetNum(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccTransGetDescription(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccTransGetCurrency(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern long xaccTransGetDate(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern long xaccTransGetDateEntered(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int xaccTransCountSplits(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccTransGetSplit(IntPtr transaction, int index);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccSplitGetAccount(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccSplitGetMemo(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccSplitGetAction(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern byte xaccSplitGetReconcile(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern long xaccSplitGetDateReconciled(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern GncNumeric xaccSplitGetValue(IntPtr split);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern GncNumeric xaccSplitGetAmount(IntPtr split);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr gnc_commodity_table_get_table(IntPtr book);
@@ -83,11 +181,117 @@ internal static class GnuCashNativeMethods
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern int gnc_commodity_table_get_size(IntPtr table);
 
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_commodity_table_foreach_commodity(
+        IntPtr table,
+        GncCommodityTableForeachCallback callback,
+        IntPtr userData);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_get_namespace(IntPtr commodity);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_get_mnemonic(IntPtr commodity);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_get_fullname(IntPtr commodity);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_get_cusip(IntPtr commodity);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_commodity_get_fraction(IntPtr commodity);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_commodity_table_lookup(
+        IntPtr table,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string space,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string mnemonic);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_pricedb_get_db(IntPtr book);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern int gnc_pricedb_foreach_price(
+        IntPtr priceDb,
+        GncPriceForeachCallback callback,
+        IntPtr userData,
+        int stableOrder);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_price_get_commodity(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_price_get_currency(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern long gnc_price_get_time64(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_price_get_source_string(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gnc_price_get_typestr(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern GncNumeric gnc_price_get_value(IntPtr price);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gncCustomerCreate(IntPtr book);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void gncCustomerSetID(
+        IntPtr customer,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string id);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void gncCustomerSetName(
+        IntPtr customer,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string name);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void gncCustomerSetCurrency(IntPtr customer, IntPtr currency);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gncCustomerGetID(IntPtr customer);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gncCustomerGetName(IntPtr customer);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr gncCustomerGetCurrency(IntPtr customer);
+
     [DllImport(GlibLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void g_free(IntPtr value);
 
     internal static string? PtrToUtf8String(IntPtr value) =>
         value == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(value);
+}
+
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int GncCommodityTableForeachCallback(IntPtr commodity, IntPtr userData);
+
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int GncTransactionCallback(IntPtr transaction, IntPtr userData);
+
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int GncPriceForeachCallback(IntPtr price, IntPtr userData);
+
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate void QofInstanceForeachCallback(IntPtr instance, IntPtr userData);
+
+[StructLayout(LayoutKind.Sequential)]
+internal readonly struct GncNumeric
+{
+    public GncNumeric(long numerator, long denominator)
+    {
+        Numerator = numerator;
+        Denominator = denominator;
+    }
+
+    public readonly long Numerator;
+
+    public readonly long Denominator;
 }
 
 internal enum SessionOpenMode

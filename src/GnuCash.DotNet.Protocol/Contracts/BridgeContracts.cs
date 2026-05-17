@@ -22,7 +22,10 @@ public enum BridgeRequestKind
     ListTransactions = 6,
     ListPrices = 7,
     ValidateNativeApi = 8,
-    ValidateNativeSession = 9
+    ValidateNativeSession = 9,
+    ValidateNativeReadParity = 10,
+    ValidateNativeWriteRoundTrip = 11,
+    ValidateNativeCustomerWrite = 12
 }
 
 /// <summary>
@@ -64,6 +67,26 @@ public sealed record LocateGnuCashRequest(string? InstallPath = null);
 /// Request payload for validating a native GnuCash session against a local book.
 /// </summary>
 public sealed record GnuCashNativeSessionRequest(string BookPath, string? InstallPath = null);
+
+/// <summary>
+/// Request payload for validating that the native engine can save and reopen a copied book.
+/// </summary>
+public sealed record GnuCashNativeWriteRoundTripRequest(
+    string SourceBookPath,
+    string? WorkingBookPath = null,
+    string? InstallPath = null);
+
+/// <summary>
+/// Request payload for validating the first native business object write.
+/// </summary>
+public sealed record GnuCashNativeCustomerWriteRequest(
+    string SourceBookPath,
+    string CustomerId,
+    string CustomerName,
+    string CurrencySpace = "CURRENCY",
+    string CurrencyId = "USD",
+    string? WorkingBookPath = null,
+    string? InstallPath = null);
 
 /// <summary>
 /// Result of validating the local GnuCash installation needed by the bridge.
@@ -110,6 +133,85 @@ public sealed record GnuCashNativeSessionStatus(
     int? AccountCount,
     int? CommodityCount,
     int? TransactionCount,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Result of comparing native GnuCash reads with the XML bootstrap reader.
+/// </summary>
+public sealed record GnuCashNativeReadParityStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string BookPath,
+    string? EnginePath,
+    string ProcessArchitecture,
+    string? NativeBookId,
+    string? XmlBookId,
+    int? NativeAccountCount,
+    int? XmlAccountCount,
+    int? NativeCommodityCount,
+    int? XmlCommodityCount,
+    int? NativeTransactionCount,
+    int? XmlTransactionCount,
+    int? NativeSplitCount,
+    int? XmlSplitCount,
+    int? NativePriceCount,
+    int? XmlPriceCount,
+    IReadOnlyList<string> BookMismatches,
+    IReadOnlyList<string> AccountMismatches,
+    IReadOnlyList<string> CommodityMismatches,
+    IReadOnlyList<string> TransactionMismatches,
+    IReadOnlyList<string> PriceMismatches,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Result of saving a copied GnuCash book through the native runtime and reopening it read-only.
+/// </summary>
+public sealed record GnuCashNativeWriteRoundTripStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string SourceBookPath,
+    string WorkingBookPath,
+    string? EnginePath,
+    string ProcessArchitecture,
+    int? BeforeAccountCount,
+    int? AfterAccountCount,
+    int? BeforeCommodityCount,
+    int? AfterCommodityCount,
+    int? BeforeTransactionCount,
+    int? AfterTransactionCount,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Result of creating a customer in a copied GnuCash book and verifying it after reopen.
+/// </summary>
+public sealed record GnuCashNativeCustomerWriteStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string SourceBookPath,
+    string WorkingBookPath,
+    string? EnginePath,
+    string ProcessArchitecture,
+    string CustomerId,
+    string CustomerName,
+    string CurrencySpace,
+    string CurrencyId,
+    string? CreatedCustomerGuid,
+    int? BeforeCustomerCount,
+    int? AfterCustomerCount,
+    bool FoundAfterReopen,
     int? BackendErrorCode,
     string? BackendErrorMessage,
     IReadOnlyList<string> CheckedPaths,

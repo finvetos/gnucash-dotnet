@@ -39,7 +39,24 @@ internal sealed class GnuCashNativeSessionHandle : IDisposable
 
     public int? CommodityCount { get; }
 
-    public static GnuCashNativeSessionHandle OpenReadOnly(string bookPath)
+    public static GnuCashNativeSessionHandle OpenReadOnly(string bookPath) =>
+        Open(bookPath, SessionOpenMode.ReadOnly);
+
+    public static GnuCashNativeSessionHandle OpenWritable(string bookPath) =>
+        Open(bookPath, SessionOpenMode.NormalOpen);
+
+    public void Save()
+    {
+        if (session == IntPtr.Zero)
+        {
+            throw new ObjectDisposedException(nameof(GnuCashNativeSessionHandle));
+        }
+
+        GnuCashNativeMethods.qof_session_save(session, IntPtr.Zero);
+        ThrowIfBackendError(session, "The native GnuCash engine could not save the book.");
+    }
+
+    private static GnuCashNativeSessionHandle Open(string bookPath, SessionOpenMode mode)
     {
         var session = IntPtr.Zero;
         var bookUri = IntPtr.Zero;
@@ -57,8 +74,8 @@ internal sealed class GnuCashNativeSessionHandle : IDisposable
             bookUri = GnuCashNativeMethods.gnc_uri_normalize_uri(bookPath, allowPassword: 0);
             var sessionUri = GnuCashNativeMethods.PtrToUtf8String(bookUri) ?? bookPath;
 
-            GnuCashNativeMethods.qof_session_begin(session, sessionUri, SessionOpenMode.ReadOnly);
-            ThrowIfBackendError(session, "The native GnuCash engine could not begin a read-only session.");
+            GnuCashNativeMethods.qof_session_begin(session, sessionUri, mode);
+            ThrowIfBackendError(session, "The native GnuCash engine could not begin a session.");
 
             GnuCashNativeMethods.qof_session_load(session, IntPtr.Zero);
             ThrowIfBackendError(session, "The native GnuCash engine could not load the book.");

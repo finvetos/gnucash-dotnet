@@ -15,5 +15,11 @@ public interface ICliRenderer
 
     void WriteNativeSessionValidation(GnuCashNativeSessionStatus status);
 
+    void WriteNativeReadParityValidation(GnuCashNativeReadParityStatus status);
+
+    void WriteNativeWriteRoundTripValidation(GnuCashNativeWriteRoundTripStatus status);
+
+    void WriteNativeCustomerWriteValidation(GnuCashNativeCustomerWriteStatus status);
+
     void WriteJson<T>(T value);
 }
