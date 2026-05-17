@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GnuCash.DotNet.Bridge;
+using GnuCash.DotNet.Bridge.Tests.Fixtures;
 using GnuCash.DotNet.Protocol.Contracts;
 using Xunit;
 
@@ -102,6 +103,70 @@ public sealed class CliApplicationTests
         Assert.NotNull(status);
         Assert.True(status!.IsReady);
         Assert.Equal(fixture.InstallPath, status.InstallPath);
+    }
+
+    [Fact]
+    public async Task HeadlessCommandCanOpenBookUsingProtocolRequest()
+    {
+        using var fixture = GnuCashBookFixture.CreateXml();
+        var payload = JsonSerializer.Serialize(new GnuCashBookRequest(fixture.BookPath));
+        var request = new BridgeRequest(Guid.NewGuid(), BridgeRequestKind.OpenBook, payload);
+        var input = new StringReader(JsonSerializer.Serialize(request) + Environment.NewLine);
+        var output = new StringWriter();
+        var error = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            ["headless", "--stdio"],
+            output,
+            error,
+            isOutputRedirected: true,
+            input: input);
+
+        var response = JsonSerializer.Deserialize<BridgeResponse>(
+            output.ToString().Trim(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var summary = JsonSerializer.Deserialize<GnuCashBookSummary>(
+            response!.PayloadJson!,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.Equal(0, exitCode);
+        Assert.Empty(error.ToString());
+        Assert.NotNull(summary);
+        Assert.Equal(3, summary!.AccountCount);
+        Assert.Equal(2, summary.SplitCount);
+    }
+
+    [Fact]
+    public async Task HeadlessCommandCanListTransactionsUsingProtocolRequest()
+    {
+        using var fixture = GnuCashBookFixture.CreateXml();
+        var payload = JsonSerializer.Serialize(new GnuCashBookRequest(fixture.BookPath));
+        var request = new BridgeRequest(Guid.NewGuid(), BridgeRequestKind.ListTransactions, payload);
+        var input = new StringReader(JsonSerializer.Serialize(request) + Environment.NewLine);
+        var output = new StringWriter();
+        var error = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            ["headless", "--stdio"],
+            output,
+            error,
+            isOutputRedirected: true,
+            input: input);
+
+        var response = JsonSerializer.Deserialize<BridgeResponse>(
+            output.ToString().Trim(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var transactions = JsonSerializer.Deserialize<IReadOnlyList<GnuCashTransactionRecord>>(
+            response!.PayloadJson!,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        var transaction = Assert.Single(transactions!);
+        Assert.Equal(0, exitCode);
+        Assert.Empty(error.ToString());
+        Assert.Equal("Opening deposit", transaction.Description);
+        Assert.Equal(2, transaction.Splits.Count);
     }
 
     [Fact]

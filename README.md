@@ -42,7 +42,7 @@ GnuCash.DotNet.Bridge.exe, win-x86
 Official installed GnuCash x86 DLLs
 ```
 
-The first milestone is a read-only SDK: locate GnuCash, start the bridge, open a book, and list accounts. Write support should come later behind explicit accounting invariants and compatibility tests.
+The first milestone is a read-only SDK: locate GnuCash, start the bridge, open a GnuCash XML book, and list commodities, accounts, transactions, and splits. Write support should come later behind explicit accounting invariants and compatibility tests.
 
 ## Build
 

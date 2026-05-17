@@ -13,11 +13,14 @@ public static class BridgeProtocol
 /// </summary>
 public enum BridgeRequestKind
 {
-    Ping,
-    LocateGnuCash,
-    OpenBook,
-    ListAccounts,
-    Shutdown
+    Ping = 0,
+    LocateGnuCash = 1,
+    OpenBook = 2,
+    ListAccounts = 3,
+    Shutdown = 4,
+    ListCommodities = 5,
+    ListTransactions = 6,
+    ListPrices = 7
 }
 
 /// <summary>
@@ -65,3 +68,93 @@ public sealed record GnuCashInstallationStatus(
     IReadOnlyList<string> MissingPaths,
     IReadOnlyList<string> CheckedPaths,
     string Message);
+
+/// <summary>
+/// Request payload for operations that read a GnuCash book file.
+/// </summary>
+public sealed record GnuCashBookRequest(string BookPath);
+
+/// <summary>
+/// Summary returned when the bridge can open and inspect a book.
+/// </summary>
+public sealed record GnuCashBookSummary(
+    string BookPath,
+    string FileFormat,
+    string? BookId,
+    int CommodityCount,
+    int AccountCount,
+    int TransactionCount,
+    int SplitCount,
+    int PriceCount);
+
+/// <summary>
+/// Commodity or currency definition read from a GnuCash book.
+/// </summary>
+public sealed record GnuCashCommodityRecord(
+    string Space,
+    string Id,
+    string? Name,
+    string? XCode,
+    int Fraction);
+
+/// <summary>
+/// Account definition read from a GnuCash book.
+/// </summary>
+public sealed record GnuCashAccountRecord(
+    string Id,
+    string Name,
+    string Type,
+    string? ParentId,
+    string? CommoditySpace,
+    string? CommodityId,
+    string? Code,
+    string? Description,
+    bool IsPlaceholder);
+
+/// <summary>
+/// Rational amount as represented by GnuCash, such as 12345/100.
+/// </summary>
+public sealed record GnuCashAmountRecord(
+    string RawValue,
+    long? Numerator,
+    long? Denominator);
+
+/// <summary>
+/// Split line inside a transaction.
+/// </summary>
+public sealed record GnuCashSplitRecord(
+    string Id,
+    string AccountId,
+    string? Memo,
+    string? Action,
+    string ReconciledState,
+    GnuCashAmountRecord Value,
+    GnuCashAmountRecord Quantity,
+    DateTimeOffset? ReconciledAt);
+
+/// <summary>
+/// Transaction and its split lines.
+/// </summary>
+public sealed record GnuCashTransactionRecord(
+    string Id,
+    string? Number,
+    string? Description,
+    string? CurrencySpace,
+    string? CurrencyId,
+    DateTimeOffset? PostedAt,
+    DateTimeOffset? EnteredAt,
+    IReadOnlyList<GnuCashSplitRecord> Splits);
+
+/// <summary>
+/// Price database entry read from a GnuCash book.
+/// </summary>
+public sealed record GnuCashPriceRecord(
+    string Id,
+    string CommoditySpace,
+    string CommodityId,
+    string CurrencySpace,
+    string CurrencyId,
+    DateTimeOffset? Time,
+    string? Source,
+    string? Type,
+    GnuCashAmountRecord Value);

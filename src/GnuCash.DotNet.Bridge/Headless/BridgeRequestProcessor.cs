@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using GnuCash.DotNet.Bridge.Books;
 using GnuCash.DotNet.Bridge.Discovery;
 using GnuCash.DotNet.Protocol.Contracts;
 
@@ -10,16 +11,20 @@ namespace GnuCash.DotNet.Bridge.Headless;
 /// </summary>
 public sealed class BridgeRequestProcessor
 {
+    private readonly GnuCashBookReader bookReader;
     private readonly GnuCashInstallationLocator locator;
 
     public BridgeRequestProcessor()
-        : this(new GnuCashInstallationLocator())
+        : this(new GnuCashInstallationLocator(), new GnuCashBookReader())
     {
     }
 
-    public BridgeRequestProcessor(GnuCashInstallationLocator locator)
+    public BridgeRequestProcessor(
+        GnuCashInstallationLocator locator,
+        GnuCashBookReader bookReader)
     {
         this.locator = locator;
+        this.bookReader = bookReader;
     }
 
     public BridgeResponse Process(BridgeRequest request)
@@ -30,6 +35,11 @@ public sealed class BridgeRequestProcessor
         {
             BridgeRequestKind.Ping => Succeeded(request, CreateHandshakePayload()),
             BridgeRequestKind.LocateGnuCash => Succeeded(request, CreateLocateGnuCashPayload(request)),
+            BridgeRequestKind.OpenBook => Succeeded(request, CreateOpenBookPayload(request)),
+            BridgeRequestKind.ListCommodities => Succeeded(request, CreateListCommoditiesPayload(request)),
+            BridgeRequestKind.ListAccounts => Succeeded(request, CreateListAccountsPayload(request)),
+            BridgeRequestKind.ListTransactions => Succeeded(request, CreateListTransactionsPayload(request)),
+            BridgeRequestKind.ListPrices => Succeeded(request, CreateListPricesPayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -65,5 +75,48 @@ public sealed class BridgeRequestProcessor
         return JsonSerializer.Serialize(
             locator.Validate(payload.InstallPath),
             BridgeJson.SerializerOptions);
+    }
+
+    private string CreateOpenBookPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        return JsonSerializer.Serialize(bookReader.Open(payload.BookPath), BridgeJson.SerializerOptions);
+    }
+
+    private string CreateListCommoditiesPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        return JsonSerializer.Serialize(bookReader.ListCommodities(payload.BookPath), BridgeJson.SerializerOptions);
+    }
+
+    private string CreateListAccountsPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        return JsonSerializer.Serialize(bookReader.ListAccounts(payload.BookPath), BridgeJson.SerializerOptions);
+    }
+
+    private string CreateListTransactionsPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        return JsonSerializer.Serialize(bookReader.ListTransactions(payload.BookPath), BridgeJson.SerializerOptions);
+    }
+
+    private string CreateListPricesPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        return JsonSerializer.Serialize(bookReader.ListPrices(payload.BookPath), BridgeJson.SerializerOptions);
+    }
+
+    private static GnuCashBookRequest DeserializeBookRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A book request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashBookRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid book request payload is required.", nameof(request));
     }
 }

@@ -79,6 +79,32 @@ public sealed class BoundarySmellTests
     }
 
     [Fact]
+    public void SdkBookSurfaceShouldNotExposeRawBridgeProtocolBookDtos()
+    {
+        var forbiddenProtocolTypes = new HashSet<ReflectionType>
+        {
+            typeof(Protocol.Contracts.GnuCashBookRequest),
+            typeof(Protocol.Contracts.GnuCashBookSummary),
+            typeof(Protocol.Contracts.GnuCashCommodityRecord),
+            typeof(Protocol.Contracts.GnuCashAccountRecord),
+            typeof(Protocol.Contracts.GnuCashAmountRecord),
+            typeof(Protocol.Contracts.GnuCashSplitRecord),
+            typeof(Protocol.Contracts.GnuCashTransactionRecord),
+            typeof(Protocol.Contracts.GnuCashPriceRecord)
+        };
+
+        var leaks = SdkAssembly.GetExportedTypes()
+            .SelectMany(GetPublicSurfaceTypes)
+            .Where(forbiddenProtocolTypes.Contains)
+            .Select(type => type.FullName)
+            .Distinct()
+            .Order()
+            .ToArray();
+
+        leaks.Should().BeEmpty("book APIs should expose SDK domain models instead of raw bridge protocol contracts");
+    }
+
+    [Fact]
     public void ProtocolContractsShouldAvoidMutablePublicSetters()
     {
         var mutableProperties = ProtocolAssembly.GetExportedTypes()

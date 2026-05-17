@@ -17,7 +17,10 @@ Initial protocol scope:
 2. `LocateGnuCash`
 3. `OpenBook`
 4. `ListAccounts`
-5. `Shutdown`
+5. `ListCommodities`
+6. `ListTransactions`
+7. `ListPrices`
+8. `Shutdown`
 
 The executable has two modes:
 
@@ -44,6 +47,8 @@ SDK startup path:
 4. The bridge returns a `GnuCashInstallationStatus` payload that callers can show directly or use as a readiness gate before opening a book.
 
 The SDK can launch either a published `GnuCash.DotNet.Bridge.exe` or a development `GnuCash.DotNet.Bridge.dll` through `dotnet`. Production packages should prefer the `win-x86` executable so the bridge can load the official Windows GnuCash runtime.
+
+The first read-only book milestone uses a bridge-side GnuCash XML reader for plain and compressed XML files. That keeps the SDK shape moving while native engine integration is evaluated. SQLite and database-backed books are intentionally deferred until a backend strategy is selected.
 
 NuGet packages copy the published bridge into consuming app outputs at:
 
