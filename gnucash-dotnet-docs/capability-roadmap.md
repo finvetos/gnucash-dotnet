@@ -280,6 +280,20 @@ Target:
 
 Detailed journal: [M9 SDK Business Import Reconciliation](milestones/m9-sdk-business-import-reconciliation.md).
 
+### M10 - Native Workflow Completion
+
+Status: in progress.
+
+Target:
+
+- Native SDK backend.
+- Native transaction write foundation.
+- Import apply.
+- Reconciliation write.
+- Business object expansion.
+
+Detailed journal: [M10 Native Workflow Completion](milestones/m10-native-workflow-completion.md).
+
 ## Journal
 
 Early roadmap notes now live in

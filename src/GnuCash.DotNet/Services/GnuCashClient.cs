@@ -98,7 +98,7 @@ public sealed class GnuCashClient
 
         var summary = await SendBridgeRequestAsync<GnuCashBookSummary>(
             BridgeRequestKind.OpenBook,
-            new GnuCashBookRequest(bookPath),
+            CreateBookRequest(bookPath),
             cancellationToken).ConfigureAwait(false);
 
         return new GnuCashBook(this, Map(summary));
@@ -115,7 +115,7 @@ public sealed class GnuCashClient
     {
         var commodities = await SendBridgeRequestAsync<IReadOnlyList<GnuCashCommodityRecord>>(
             BridgeRequestKind.ListCommodities,
-            new GnuCashBookRequest(bookPath),
+            CreateBookRequest(bookPath),
             cancellationToken).ConfigureAwait(false);
 
         return commodities.Select(Map).ToArray();
@@ -127,7 +127,7 @@ public sealed class GnuCashClient
     {
         var accounts = await SendBridgeRequestAsync<IReadOnlyList<GnuCashAccountRecord>>(
             BridgeRequestKind.ListAccounts,
-            new GnuCashBookRequest(bookPath),
+            CreateBookRequest(bookPath),
             cancellationToken).ConfigureAwait(false);
 
         return accounts.Select(Map).ToArray();
@@ -139,7 +139,7 @@ public sealed class GnuCashClient
     {
         var transactions = await SendBridgeRequestAsync<IReadOnlyList<GnuCashTransactionRecord>>(
             BridgeRequestKind.ListTransactions,
-            new GnuCashBookRequest(bookPath),
+            CreateBookRequest(bookPath),
             cancellationToken).ConfigureAwait(false);
 
         return transactions.Select(Map).ToArray();
@@ -151,10 +151,22 @@ public sealed class GnuCashClient
     {
         var prices = await SendBridgeRequestAsync<IReadOnlyList<GnuCashPriceRecord>>(
             BridgeRequestKind.ListPrices,
-            new GnuCashBookRequest(bookPath),
+            CreateBookRequest(bookPath),
             cancellationToken).ConfigureAwait(false);
 
         return prices.Select(Map).ToArray();
+    }
+
+    internal async Task<IReadOnlyList<GnuCashCustomer>> ListCustomersAsync(
+        string bookPath,
+        CancellationToken cancellationToken)
+    {
+        var customers = await SendBridgeRequestAsync<IReadOnlyList<GnuCashCustomerRecord>>(
+            BridgeRequestKind.ListCustomers,
+            CreateBookRequest(bookPath),
+            cancellationToken).ConfigureAwait(false);
+
+        return customers.Select(Map).ToArray();
     }
 
     internal async Task<GnuCashCustomerCreateResult> CreateCustomerInCopiedBookAsync(
@@ -179,6 +191,34 @@ public sealed class GnuCashClient
 
         return Map(status);
     }
+
+    internal async Task<GnuCashTransactionCreateResult> CreateTransactionInCopiedBookAsync(
+        string bookPath,
+        GnuCashTransactionCreateRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(bookPath);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var status = await SendBridgeRequestAsync<GnuCashNativeTransactionWriteStatus>(
+            BridgeRequestKind.ValidateNativeTransactionWrite,
+            new GnuCashNativeTransactionWriteRequest(
+                bookPath,
+                request.Description,
+                request.PostedAt,
+                request.Splits.Select(Map).ToArray(),
+                request.CurrencySpace,
+                request.CurrencyId,
+                request.Number,
+                request.WorkingBookPath,
+                options.InstallPath),
+            cancellationToken).ConfigureAwait(false);
+
+        return Map(status);
+    }
+
+    private GnuCashBookRequest CreateBookRequest(string bookPath) =>
+        new(bookPath, Map(options.ReadMode), options.InstallPath);
 
     private async Task<TPayload> SendBridgeRequestAsync<TPayload>(
         BridgeRequestKind kind,
@@ -278,6 +318,9 @@ public sealed class GnuCashClient
     private static GnuCashAmount Map(GnuCashAmountRecord amount) =>
         new(amount.RawValue, amount.Numerator, amount.Denominator);
 
+    private static GnuCashAmountRecord Map(GnuCashAmount amount) =>
+        new(amount.RawValue, amount.Numerator, amount.Denominator);
+
     private static GnuCashPrice Map(GnuCashPriceRecord price) =>
         new(
             price.Id,
@@ -289,6 +332,14 @@ public sealed class GnuCashClient
             price.Source,
             price.Type,
             Map(price.Value));
+
+    private static GnuCashCustomer Map(GnuCashCustomerRecord customer) =>
+        new(
+            customer.Id,
+            customer.CustomerId,
+            customer.Name,
+            customer.CurrencySpace,
+            customer.CurrencyId);
 
     private static GnuCashCustomerCreateResult Map(GnuCashNativeCustomerWriteStatus status) =>
         new(
@@ -306,4 +357,38 @@ public sealed class GnuCashClient
             status.BackendErrorCode,
             status.BackendErrorMessage,
             status.Message);
+
+    private static GnuCashTransactionCreateResult Map(GnuCashNativeTransactionWriteStatus status) =>
+        new(
+            status.IsReady,
+            status.SourceBookPath,
+            status.WorkingBookPath,
+            status.Description,
+            status.CurrencySpace,
+            status.CurrencyId,
+            status.Number,
+            status.CreatedTransactionGuid,
+            status.SplitCount,
+            status.BeforeTransactionCount,
+            status.AfterTransactionCount,
+            status.FoundAfterReopen,
+            status.BackendErrorCode,
+            status.BackendErrorMessage,
+            status.Message);
+
+    private static GnuCashNativeTransactionSplitWriteRequest Map(GnuCashTransactionSplitCreateRequest split) =>
+        new(
+            split.AccountId,
+            Map(split.Value),
+            split.Quantity is null ? null : Map(split.Quantity),
+            split.Memo,
+            split.Action);
+
+    private static GnuCashBookReadBackend Map(GnuCashBookReadMode readMode) =>
+        readMode switch
+        {
+            GnuCashBookReadMode.Native => GnuCashBookReadBackend.Native,
+            GnuCashBookReadMode.NativeThenXml => GnuCashBookReadBackend.NativeThenXml,
+            _ => GnuCashBookReadBackend.Xml
+        };
 }

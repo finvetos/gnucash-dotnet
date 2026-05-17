@@ -64,5 +64,10 @@ public sealed class BridgeContractsTests
         Assert.Equal(10, (int)BridgeRequestKind.ValidateNativeReadParity);
         Assert.Equal(11, (int)BridgeRequestKind.ValidateNativeWriteRoundTrip);
         Assert.Equal(12, (int)BridgeRequestKind.ValidateNativeCustomerWrite);
+        Assert.Equal(13, (int)BridgeRequestKind.ValidateNativeTransactionWrite);
+        Assert.Equal(14, (int)BridgeRequestKind.ListCustomers);
+        Assert.Equal(0, (int)GnuCashBookReadBackend.Xml);
+        Assert.Equal(1, (int)GnuCashBookReadBackend.Native);
+        Assert.Equal(2, (int)GnuCashBookReadBackend.NativeThenXml);
     }
 }

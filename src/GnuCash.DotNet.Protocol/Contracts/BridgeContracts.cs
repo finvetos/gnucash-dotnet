@@ -25,7 +25,19 @@ public enum BridgeRequestKind
     ValidateNativeSession = 9,
     ValidateNativeReadParity = 10,
     ValidateNativeWriteRoundTrip = 11,
-    ValidateNativeCustomerWrite = 12
+    ValidateNativeCustomerWrite = 12,
+    ValidateNativeTransactionWrite = 13,
+    ListCustomers = 14
+}
+
+/// <summary>
+/// Book read backend requested by the SDK.
+/// </summary>
+public enum GnuCashBookReadBackend
+{
+    Xml = 0,
+    Native = 1,
+    NativeThenXml = 2
 }
 
 /// <summary>
@@ -87,6 +99,30 @@ public sealed record GnuCashNativeCustomerWriteRequest(
     string CurrencyId = "USD",
     string? WorkingBookPath = null,
     string? InstallPath = null);
+
+/// <summary>
+/// Request payload for validating a native transaction write in a copied book.
+/// </summary>
+public sealed record GnuCashNativeTransactionWriteRequest(
+    string SourceBookPath,
+    string Description,
+    DateTimeOffset PostedAt,
+    IReadOnlyList<GnuCashNativeTransactionSplitWriteRequest> Splits,
+    string CurrencySpace = "CURRENCY",
+    string CurrencyId = "USD",
+    string? Number = null,
+    string? WorkingBookPath = null,
+    string? InstallPath = null);
+
+/// <summary>
+/// Split payload for native transaction write validation.
+/// </summary>
+public sealed record GnuCashNativeTransactionSplitWriteRequest(
+    string AccountId,
+    GnuCashAmountRecord Value,
+    GnuCashAmountRecord? Quantity = null,
+    string? Memo = null,
+    string? Action = null);
 
 /// <summary>
 /// Result of validating the local GnuCash installation needed by the bridge.
@@ -218,9 +254,38 @@ public sealed record GnuCashNativeCustomerWriteStatus(
     string Message);
 
 /// <summary>
+/// Result of creating a transaction in a copied GnuCash book and verifying it after reopen.
+/// </summary>
+public sealed record GnuCashNativeTransactionWriteStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string SourceBookPath,
+    string WorkingBookPath,
+    string? EnginePath,
+    string ProcessArchitecture,
+    string Description,
+    string CurrencySpace,
+    string CurrencyId,
+    string? Number,
+    string? CreatedTransactionGuid,
+    int SplitCount,
+    int? BeforeTransactionCount,
+    int? AfterTransactionCount,
+    bool FoundAfterReopen,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
 /// Request payload for operations that read a GnuCash book file.
 /// </summary>
-public sealed record GnuCashBookRequest(string BookPath);
+public sealed record GnuCashBookRequest(
+    string BookPath,
+    GnuCashBookReadBackend ReadBackend = GnuCashBookReadBackend.Xml,
+    string? InstallPath = null);
 
 /// <summary>
 /// Summary returned when the bridge can open and inspect a book.
@@ -306,3 +371,13 @@ public sealed record GnuCashPriceRecord(
     string? Source,
     string? Type,
     GnuCashAmountRecord Value);
+
+/// <summary>
+/// Customer business object read from a GnuCash book.
+/// </summary>
+public sealed record GnuCashCustomerRecord(
+    string Id,
+    string CustomerId,
+    string Name,
+    string? CurrencySpace,
+    string? CurrencyId);

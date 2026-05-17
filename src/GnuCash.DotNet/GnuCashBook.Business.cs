@@ -5,6 +5,13 @@ namespace GnuCash.DotNet;
 public sealed partial class GnuCashBook
 {
     /// <summary>
+    /// Lists customer business objects through the installed native GnuCash engine.
+    /// </summary>
+    public Task<IReadOnlyList<GnuCashCustomer>> ListCustomersAsync(
+        CancellationToken cancellationToken = default) =>
+        client.ListCustomersAsync(BookPath, cancellationToken);
+
+    /// <summary>
     /// Creates a customer in a copied book through the installed native GnuCash engine.
     /// </summary>
     public Task<GnuCashCustomerCreateResult> CreateCustomerInCopiedBookAsync(

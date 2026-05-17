@@ -28,3 +28,13 @@ public sealed record GnuCashCustomerCreateResult(
     int? BackendErrorCode,
     string? BackendErrorMessage,
     string Message);
+
+/// <summary>
+/// Customer business object in a GnuCash book.
+/// </summary>
+public sealed record GnuCashCustomer(
+    string Id,
+    string CustomerId,
+    string Name,
+    string? CurrencySpace,
+    string? CurrencyId);

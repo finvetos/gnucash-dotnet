@@ -19,6 +19,9 @@ public sealed class BridgeRequestProcessor
     private readonly GnuCashNativeReadParityChecker nativeReadParityChecker;
     private readonly GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator;
     private readonly GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator;
+    private readonly GnuCashNativeTransactionWriteValidator nativeTransactionWriteValidator;
+    private readonly GnuCashNativeBookReader nativeBookReader;
+    private readonly GnuCashNativeCustomerReader nativeCustomerReader;
 
     public BridgeRequestProcessor()
         : this(
@@ -28,7 +31,10 @@ public sealed class BridgeRequestProcessor
             new GnuCashNativeSession(),
             new GnuCashNativeReadParityChecker(),
             new GnuCashNativeWriteRoundTripValidator(),
-            new GnuCashNativeCustomerWriteValidator())
+            new GnuCashNativeCustomerWriteValidator(),
+            new GnuCashNativeTransactionWriteValidator(),
+            new GnuCashNativeBookReader(),
+            new GnuCashNativeCustomerReader())
     {
     }
 
@@ -39,7 +45,10 @@ public sealed class BridgeRequestProcessor
         GnuCashNativeSession nativeSession,
         GnuCashNativeReadParityChecker nativeReadParityChecker,
         GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator,
-        GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator)
+        GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator,
+        GnuCashNativeTransactionWriteValidator nativeTransactionWriteValidator,
+        GnuCashNativeBookReader nativeBookReader,
+        GnuCashNativeCustomerReader nativeCustomerReader)
     {
         this.locator = locator;
         this.bookReader = bookReader;
@@ -48,6 +57,9 @@ public sealed class BridgeRequestProcessor
         this.nativeReadParityChecker = nativeReadParityChecker;
         this.nativeWriteRoundTripValidator = nativeWriteRoundTripValidator;
         this.nativeCustomerWriteValidator = nativeCustomerWriteValidator;
+        this.nativeTransactionWriteValidator = nativeTransactionWriteValidator;
+        this.nativeBookReader = nativeBookReader;
+        this.nativeCustomerReader = nativeCustomerReader;
     }
 
     public BridgeResponse Process(BridgeRequest request)
@@ -68,6 +80,8 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ValidateNativeReadParity => Succeeded(request, CreateValidateNativeReadParityPayload(request)),
             BridgeRequestKind.ValidateNativeWriteRoundTrip => Succeeded(request, CreateValidateNativeWriteRoundTripPayload(request)),
             BridgeRequestKind.ValidateNativeCustomerWrite => Succeeded(request, CreateValidateNativeCustomerWritePayload(request)),
+            BridgeRequestKind.ValidateNativeTransactionWrite => Succeeded(request, CreateValidateNativeTransactionWritePayload(request)),
+            BridgeRequestKind.ListCustomers => Succeeded(request, CreateListCustomersPayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -136,34 +150,96 @@ public sealed class BridgeRequestProcessor
             nativeCustomerWriteValidator.Validate(DeserializeCustomerWriteRequest(request)),
             BridgeJson.SerializerOptions);
 
+    private string CreateValidateNativeTransactionWritePayload(BridgeRequest request) =>
+        JsonSerializer.Serialize(
+            nativeTransactionWriteValidator.Validate(DeserializeTransactionWriteRequest(request)),
+            BridgeJson.SerializerOptions);
+
     private string CreateOpenBookPayload(BridgeRequest request)
     {
         var payload = DeserializeBookRequest(request);
-        return JsonSerializer.Serialize(bookReader.Open(payload.BookPath), BridgeJson.SerializerOptions);
+        var snapshot = ReadBookSnapshot(payload);
+        return JsonSerializer.Serialize(
+            new GnuCashBookSummary(
+                snapshot.BookPath,
+                snapshot.FileFormat,
+                snapshot.BookId,
+                snapshot.Commodities.Count,
+                snapshot.Accounts.Count,
+                snapshot.Transactions.Count,
+                snapshot.Transactions.Sum(transaction => transaction.Splits.Count),
+                snapshot.Prices.Count),
+            BridgeJson.SerializerOptions);
     }
 
     private string CreateListCommoditiesPayload(BridgeRequest request)
     {
         var payload = DeserializeBookRequest(request);
-        return JsonSerializer.Serialize(bookReader.ListCommodities(payload.BookPath), BridgeJson.SerializerOptions);
+        return JsonSerializer.Serialize(ReadBookSnapshot(payload).Commodities, BridgeJson.SerializerOptions);
     }
 
     private string CreateListAccountsPayload(BridgeRequest request)
     {
         var payload = DeserializeBookRequest(request);
-        return JsonSerializer.Serialize(bookReader.ListAccounts(payload.BookPath), BridgeJson.SerializerOptions);
+        return JsonSerializer.Serialize(ReadBookSnapshot(payload).Accounts, BridgeJson.SerializerOptions);
     }
 
     private string CreateListTransactionsPayload(BridgeRequest request)
     {
         var payload = DeserializeBookRequest(request);
-        return JsonSerializer.Serialize(bookReader.ListTransactions(payload.BookPath), BridgeJson.SerializerOptions);
+        return JsonSerializer.Serialize(ReadBookSnapshot(payload).Transactions, BridgeJson.SerializerOptions);
     }
 
     private string CreateListPricesPayload(BridgeRequest request)
     {
         var payload = DeserializeBookRequest(request);
-        return JsonSerializer.Serialize(bookReader.ListPrices(payload.BookPath), BridgeJson.SerializerOptions);
+        return JsonSerializer.Serialize(ReadBookSnapshot(payload).Prices, BridgeJson.SerializerOptions);
+    }
+
+    private string CreateListCustomersPayload(BridgeRequest request)
+    {
+        var payload = DeserializeBookRequest(request);
+        var customers = nativeCustomerReader.Read(payload.BookPath, payload.InstallPath);
+        if (!customers.IsReady)
+        {
+            throw new InvalidOperationException(customers.Message);
+        }
+
+        return JsonSerializer.Serialize(customers.Customers, BridgeJson.SerializerOptions);
+    }
+
+    private BridgeBookSnapshot ReadBookSnapshot(GnuCashBookRequest request)
+    {
+        if (request.ReadBackend is GnuCashBookReadBackend.Native or GnuCashBookReadBackend.NativeThenXml)
+        {
+            var nativeRead = nativeBookReader.ReadCoreBookData(request.BookPath, request.InstallPath);
+            if (nativeRead.IsReady)
+            {
+                return new BridgeBookSnapshot(
+                    nativeRead.BookPath,
+                    "GnuCashNative",
+                    nativeRead.BookId,
+                    nativeRead.Commodities,
+                    nativeRead.Accounts,
+                    nativeRead.Transactions,
+                    nativeRead.Prices);
+            }
+
+            if (request.ReadBackend == GnuCashBookReadBackend.Native)
+            {
+                throw new InvalidOperationException(nativeRead.Message);
+            }
+        }
+
+        var summary = bookReader.Open(request.BookPath);
+        return new BridgeBookSnapshot(
+            summary.BookPath,
+            summary.FileFormat,
+            summary.BookId,
+            bookReader.ListCommodities(request.BookPath),
+            bookReader.ListAccounts(request.BookPath),
+            bookReader.ListTransactions(request.BookPath),
+            bookReader.ListPrices(request.BookPath));
     }
 
     private static GnuCashBookRequest DeserializeBookRequest(BridgeRequest request)
@@ -224,4 +300,26 @@ public sealed class BridgeRequestProcessor
                    BridgeJson.SerializerOptions) ??
                throw new ArgumentException("A valid native customer write request payload is required.", nameof(request));
     }
+
+    private static GnuCashNativeTransactionWriteRequest DeserializeTransactionWriteRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A native transaction write request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashNativeTransactionWriteRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid native transaction write request payload is required.", nameof(request));
+    }
+
+    private sealed record BridgeBookSnapshot(
+        string BookPath,
+        string FileFormat,
+        string? BookId,
+        IReadOnlyList<GnuCashCommodityRecord> Commodities,
+        IReadOnlyList<GnuCashAccountRecord> Accounts,
+        IReadOnlyList<GnuCashTransactionRecord> Transactions,
+        IReadOnlyList<GnuCashPriceRecord> Prices);
 }

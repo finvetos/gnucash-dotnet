@@ -237,6 +237,41 @@ internal static class GnuCashNativeMethods
     internal static extern GncNumeric gnc_price_get_value(IntPtr price);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccMallocTransaction(IntPtr book);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransBeginEdit(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransCommitEdit(IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransSetCurrency(IntPtr transaction, IntPtr currency);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransSetDescription(
+        IntPtr transaction,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string description);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransSetDatePostedSecsNormalized(IntPtr transaction, long seconds);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr xaccMallocSplit(IntPtr book);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetAccount(IntPtr split, IntPtr account);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetParent(IntPtr split, IntPtr transaction);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetValue(IntPtr split, GncNumeric value);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetAmount(IntPtr split, GncNumeric amount);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr gncCustomerCreate(IntPtr book);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]

@@ -20,6 +20,11 @@ public sealed class GnuCashBridgeOptions
     public string? BridgeExecutablePath { get; init; }
 
     /// <summary>
+    /// Book read backend used by SDK book operations.
+    /// </summary>
+    public GnuCashBookReadMode ReadMode { get; init; } = GnuCashBookReadMode.Xml;
+
+    /// <summary>
     /// Maximum time to wait for the bridge process to become ready.
     /// </summary>
     [Range(1, 120)]
