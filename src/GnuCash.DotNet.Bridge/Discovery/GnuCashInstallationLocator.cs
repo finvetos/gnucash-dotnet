@@ -16,6 +16,7 @@ public sealed class GnuCashInstallationLocator
         Path.Combine("bin", "gnucash-cli.exe"),
         Path.Combine("bin", "libgnc-core-utils.dll"),
         Path.Combine("bin", "libgnc-engine.dll"),
+        Path.Combine("bin", "libgnc-module.dll"),
         Path.Combine("etc", "gnucash"),
         Path.Combine("lib", "gnucash"),
         Path.Combine("share", "gnucash")

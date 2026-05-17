@@ -101,6 +101,35 @@ public sealed class SpectreCliRenderer : ICliRenderer
         WriteValues("Missing native exports", status.MissingExports);
     }
 
+    public void WriteNativeSessionValidation(GnuCashNativeSessionStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Native session is ready[/]" : "[bold red]Native session is not ready[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native Session")
+            .Border(BoxBorder.Rounded));
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+
+        table.AddRow("Callable now", status.CanCallFromCurrentProcess ? "Yes" : "No");
+        table.AddRow("Architecture", Markup.Escape(status.ProcessArchitecture));
+        table.AddRow("Book", Markup.Escape(status.BookPath));
+        table.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+        table.AddRow("Engine", Markup.Escape(status.EnginePath ?? "unknown"));
+        table.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+        table.AddRow("Session file", Markup.Escape(status.SessionFilePath ?? "unknown"));
+        table.AddRow("Session URL", Markup.Escape(status.SessionUrl ?? "unknown"));
+        table.AddRow("Has book", status.HasBook ? "Yes" : "No");
+        table.AddRow("Has root", status.HasRootAccount ? "Yes" : "No");
+        table.AddRow("Transactions", status.TransactionCount?.ToString() ?? "unknown");
+        table.AddRow("Backend error", status.BackendErrorCode?.ToString() ?? "none");
+        table.AddRow("Backend message", Markup.Escape(status.BackendErrorMessage ?? "none"));
+        console.Write(table);
+    }
+
     public void WriteJson<T>(T value)
     {
         new PlainCliRenderer(writer, json: true).WriteJson(value);

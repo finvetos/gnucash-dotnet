@@ -375,6 +375,7 @@ public sealed class GnuCashClientTests
             CreateFile(installPath, "bin", "gnucash-cli.exe");
             CreateFile(installPath, "bin", "libgnc-core-utils.dll");
             CreateFile(installPath, "bin", "libgnc-engine.dll");
+            CreateFile(installPath, "bin", "libgnc-module.dll");
             Directory.CreateDirectory(Path.Combine(installPath, "etc", "gnucash"));
             Directory.CreateDirectory(Path.Combine(installPath, "lib", "gnucash"));
             Directory.CreateDirectory(Path.Combine(installPath, "share", "gnucash"));

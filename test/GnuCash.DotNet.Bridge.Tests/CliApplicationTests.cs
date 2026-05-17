@@ -24,6 +24,7 @@ public sealed class CliApplicationTests
         Assert.Contains("ping", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate-api", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("validate-session", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("headless", writer.ToString(), StringComparison.Ordinal);
     }
 
@@ -62,6 +63,34 @@ public sealed class CliApplicationTests
         Assert.Equal(1, exitCode);
         Assert.Contains("GnuCash native API validation", output, StringComparison.Ordinal);
         Assert.Contains("Status:       Not ready", output, StringComparison.Ordinal);
+        Assert.Contains("libgnc-engine.dll", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ValidateSessionCommandReportsNativeApiFailureBeforeOpeningBook()
+    {
+        using var installFixture = GnuCashInstallFixture.Create();
+        using var bookFixture = GnuCashBookFixture.CreateXml();
+        var writer = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            [
+                "validate-session",
+                "--install-path",
+                installFixture.InstallPath,
+                "--book-path",
+                bookFixture.BookPath,
+                "--plain"
+            ],
+            writer,
+            isOutputRedirected: false);
+
+        var output = writer.ToString();
+        Assert.Equal(1, exitCode);
+        Assert.Contains("GnuCash native session validation", output, StringComparison.Ordinal);
+        Assert.Contains("Status:       Not ready", output, StringComparison.Ordinal);
+        Assert.Contains(bookFixture.BookPath, output, StringComparison.Ordinal);
         Assert.Contains("libgnc-engine.dll", output, StringComparison.Ordinal);
     }
 
@@ -155,6 +184,42 @@ public sealed class CliApplicationTests
         Assert.NotNull(status);
         Assert.False(status!.IsReady);
         Assert.Contains("qof_session_new", status.RequiredExports);
+    }
+
+    [Fact]
+    public async Task HeadlessCommandCanValidateNativeSessionUsingProtocolRequest()
+    {
+        using var installFixture = GnuCashInstallFixture.Create();
+        using var bookFixture = GnuCashBookFixture.CreateXml();
+        var payload = JsonSerializer.Serialize(new GnuCashNativeSessionRequest(
+            bookFixture.BookPath,
+            installFixture.InstallPath));
+        var request = new BridgeRequest(Guid.NewGuid(), BridgeRequestKind.ValidateNativeSession, payload);
+        var input = new StringReader(JsonSerializer.Serialize(request) + Environment.NewLine);
+        var output = new StringWriter();
+        var error = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            ["headless", "--stdio"],
+            output,
+            error,
+            isOutputRedirected: true,
+            input: input);
+
+        var response = JsonSerializer.Deserialize<BridgeResponse>(
+            output.ToString().Trim(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var status = JsonSerializer.Deserialize<GnuCashNativeSessionStatus>(
+            response!.PayloadJson!,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.Equal(0, exitCode);
+        Assert.Empty(error.ToString());
+        Assert.NotNull(status);
+        Assert.False(status!.IsReady);
+        Assert.Equal(bookFixture.BookPath, status.BookPath);
+        Assert.Contains("libgnc-engine.dll", status.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -347,6 +412,7 @@ public sealed class CliApplicationTests
             CreateFile(installPath, "bin", "gnucash-cli.exe");
             CreateFile(installPath, "bin", "libgnc-core-utils.dll");
             CreateFile(installPath, "bin", "libgnc-engine.dll");
+            CreateFile(installPath, "bin", "libgnc-module.dll");
             Directory.CreateDirectory(Path.Combine(installPath, "etc", "gnucash"));
             Directory.CreateDirectory(Path.Combine(installPath, "lib", "gnucash"));
             Directory.CreateDirectory(Path.Combine(installPath, "share", "gnucash"));

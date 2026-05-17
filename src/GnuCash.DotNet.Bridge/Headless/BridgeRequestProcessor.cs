@@ -15,20 +15,27 @@ public sealed class BridgeRequestProcessor
     private readonly GnuCashBookReader bookReader;
     private readonly GnuCashInstallationLocator locator;
     private readonly GnuCashNativeApiProbe nativeApiProbe;
+    private readonly GnuCashNativeSession nativeSession;
 
     public BridgeRequestProcessor()
-        : this(new GnuCashInstallationLocator(), new GnuCashBookReader(), new GnuCashNativeApiProbe())
+        : this(
+            new GnuCashInstallationLocator(),
+            new GnuCashBookReader(),
+            new GnuCashNativeApiProbe(),
+            new GnuCashNativeSession())
     {
     }
 
     public BridgeRequestProcessor(
         GnuCashInstallationLocator locator,
         GnuCashBookReader bookReader,
-        GnuCashNativeApiProbe nativeApiProbe)
+        GnuCashNativeApiProbe nativeApiProbe,
+        GnuCashNativeSession nativeSession)
     {
         this.locator = locator;
         this.bookReader = bookReader;
         this.nativeApiProbe = nativeApiProbe;
+        this.nativeSession = nativeSession;
     }
 
     public BridgeResponse Process(BridgeRequest request)
@@ -45,6 +52,7 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ListTransactions => Succeeded(request, CreateListTransactionsPayload(request)),
             BridgeRequestKind.ListPrices => Succeeded(request, CreateListPricesPayload(request)),
             BridgeRequestKind.ValidateNativeApi => Succeeded(request, CreateValidateNativeApiPayload(request)),
+            BridgeRequestKind.ValidateNativeSession => Succeeded(request, CreateValidateNativeSessionPayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -80,6 +88,14 @@ public sealed class BridgeRequestProcessor
         JsonSerializer.Serialize(
             nativeApiProbe.Validate(DeserializeLocateRequest(request).InstallPath),
             BridgeJson.SerializerOptions);
+
+    private string CreateValidateNativeSessionPayload(BridgeRequest request)
+    {
+        var payload = DeserializeNativeSessionRequest(request);
+        return JsonSerializer.Serialize(
+            nativeSession.ValidateReadOnlyOpen(payload.BookPath, payload.InstallPath),
+            BridgeJson.SerializerOptions);
+    }
 
     private string CreateOpenBookPayload(BridgeRequest request)
     {
@@ -130,4 +146,17 @@ public sealed class BridgeRequestProcessor
             : JsonSerializer.Deserialize<LocateGnuCashRequest>(
                   request.PayloadJson,
                   BridgeJson.SerializerOptions) ?? new LocateGnuCashRequest();
+
+    private static GnuCashNativeSessionRequest DeserializeNativeSessionRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A native session validation request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashNativeSessionRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid native session validation request payload is required.", nameof(request));
+    }
 }

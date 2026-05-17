@@ -491,8 +491,8 @@ Delivered:
 - Added a human-facing `validate-api` CLI command.
 - Added tests for the new protocol value, CLI command behavior, and headless validation request.
 
-Next work:
+Next work: continue through the native session spine, then start customer creation as the first disposable write workflow.
 
-- Build the native session abstraction for open/load/save/close.
-- Prove one read-only native query against a copied disposable book.
-- Then add customer creation as the first write workflow.
+### 2026-05-17 - M7 Native Session Spine Delivered
+
+Added `ValidateNativeSession`, `validate-session`, native session lifecycle P/Invokes, runtime bootstrap, file URI normalization, and regression tests. The published `win-x86` bridge opened a disposable book read-only through the stock Windows GnuCash install. Detailed journal: [M7 Native Session Spine](milestones/m7-native-session-spine.md).

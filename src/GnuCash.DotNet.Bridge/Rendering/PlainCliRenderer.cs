@@ -32,7 +32,7 @@ public sealed class PlainCliRenderer : ICliRenderer
         writer.WriteLine("Commands:");
         foreach (var command in commands)
         {
-            writer.WriteLine($"  {command.Name,-8} {command.Description}");
+            writer.WriteLine($"  {command.Name,-16} {command.Description}");
         }
 
         writer.WriteLine();
@@ -55,8 +55,8 @@ public sealed class PlainCliRenderer : ICliRenderer
         writer.WriteLine("--------");
         foreach (var command in commands)
         {
-            writer.WriteLine($"{command.Name,-8} {command.Description}");
-            writer.WriteLine($"         {command.Usage}");
+            writer.WriteLine($"{command.Name,-16} {command.Description}");
+            writer.WriteLine($"                 {command.Usage}");
         }
     }
 
@@ -122,6 +122,69 @@ public sealed class PlainCliRenderer : ICliRenderer
         writer.WriteLine();
         writer.WriteLine(status.Message);
         WriteList("Missing native exports", status.MissingExports);
+    }
+
+    public void WriteNativeSessionValidation(GnuCashNativeSessionStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native session validation");
+        writer.WriteLine("---------------------------------");
+        writer.WriteLine($"Status:       {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Callable now: {(status.CanCallFromCurrentProcess ? "Yes" : "No")}");
+        writer.WriteLine($"Architecture: {status.ProcessArchitecture}");
+        writer.WriteLine($"Book:         {status.BookPath}");
+
+        if (!string.IsNullOrWhiteSpace(status.InstallPath))
+        {
+            writer.WriteLine($"Path:         {status.InstallPath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.EnginePath))
+        {
+            writer.WriteLine($"Engine:       {status.EnginePath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.DisplayVersion))
+        {
+            writer.WriteLine($"Version:      {status.DisplayVersion}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.SessionFilePath))
+        {
+            writer.WriteLine($"Session file: {status.SessionFilePath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.SessionUrl))
+        {
+            writer.WriteLine($"Session URL:  {status.SessionUrl}");
+        }
+
+        writer.WriteLine($"Has book:     {(status.HasBook ? "Yes" : "No")}");
+        writer.WriteLine($"Has root:     {(status.HasRootAccount ? "Yes" : "No")}");
+
+        if (status.TransactionCount is not null)
+        {
+            writer.WriteLine($"Transactions: {status.TransactionCount}");
+        }
+
+        if (status.BackendErrorCode is not null)
+        {
+            writer.WriteLine($"Backend err:  {status.BackendErrorCode}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.BackendErrorMessage))
+        {
+            writer.WriteLine($"Backend msg:  {status.BackendErrorMessage}");
+        }
+
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
     }
 
     public void WriteJson<T>(T value)

@@ -21,7 +21,8 @@ public enum BridgeRequestKind
     ListCommodities = 5,
     ListTransactions = 6,
     ListPrices = 7,
-    ValidateNativeApi = 8
+    ValidateNativeApi = 8,
+    ValidateNativeSession = 9
 }
 
 /// <summary>
@@ -59,6 +60,11 @@ public sealed record BridgeHandshake(
 public sealed record LocateGnuCashRequest(string? InstallPath = null);
 
 /// <summary>
+/// Request payload for validating a native GnuCash session against a local book.
+/// </summary>
+public sealed record GnuCashNativeSessionRequest(string BookPath, string? InstallPath = null);
+
+/// <summary>
 /// Result of validating the local GnuCash installation needed by the bridge.
 /// </summary>
 public sealed record GnuCashInstallationStatus(
@@ -82,6 +88,27 @@ public sealed record GnuCashNativeApiStatus(
     string ProcessArchitecture,
     IReadOnlyList<string> RequiredExports,
     IReadOnlyList<string> MissingExports,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Result of opening a book through the installed native GnuCash runtime.
+/// </summary>
+public sealed record GnuCashNativeSessionStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string BookPath,
+    string? EnginePath,
+    string? SessionFilePath,
+    string? SessionUrl,
+    string ProcessArchitecture,
+    bool HasBook,
+    bool HasRootAccount,
+    int? TransactionCount,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
     IReadOnlyList<string> CheckedPaths,
     string Message);
 

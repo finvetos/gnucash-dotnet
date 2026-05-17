@@ -87,6 +87,7 @@ public sealed class CliApplication
         root.Subcommands.Add(BuildPingCommand(renderer));
         root.Subcommands.Add(BuildValidateCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeApiCommand(renderer));
+        root.Subcommands.Add(BuildValidateNativeSessionCommand(renderer));
         root.Subcommands.Add(BuildHeadlessCommand(input, output, error));
 
         return root;
@@ -178,6 +179,37 @@ public sealed class CliApplication
             var installPath = parseResult.GetValue(installPathOption);
             var status = new GnuCashNativeApiProbe().Validate(installPath);
             renderer.WriteNativeApiValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateNativeSessionCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Validate a specific GnuCash installation path."
+        };
+        var bookPathOption = new Option<string?>("--book-path")
+        {
+            Description = "Open this GnuCash book read-only through the native engine."
+        };
+        var command = new Command("validate-session", "Open a book read-only through the native GnuCash engine.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.Options.Add(bookPathOption);
+        command.SetAction(parseResult =>
+        {
+            var bookPath = parseResult.GetValue(bookPathOption);
+            if (string.IsNullOrWhiteSpace(bookPath))
+            {
+                throw new ArgumentException("A --book-path value is required.");
+            }
+
+            var installPath = parseResult.GetValue(installPathOption);
+            var status = new GnuCashNativeSession().ValidateReadOnlyOpen(bookPath, installPath);
+            renderer.WriteNativeSessionValidation(status);
             return status.IsReady ? 0 : 1;
         });
 

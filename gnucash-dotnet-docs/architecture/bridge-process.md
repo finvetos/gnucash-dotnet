@@ -25,7 +25,7 @@ Initial protocol scope:
 Native API protocol scope starts with:
 
 1. `ValidateNativeApi`
-2. Native session open/load/save/close
+2. `ValidateNativeSession`
 3. Native read parity for accounts, commodities, transactions, prices, and business objects
 4. Native write workflows for customers, vendors, employees, jobs, invoices, bills, entries, posting, payments, tax tables, and terms
 
@@ -52,7 +52,17 @@ GnuCash.DotNet.Bridge validate-api --install-path "C:\Program Files (x86)\gnucas
 GnuCash.DotNet.Bridge validate-api --json
 ```
 
-The API check validates the export surface without mutating a book. The SDK still calls native GnuCash from the packaged win-x86 bridge process; the public .NET library never exposes GnuCash pointers or requires consuming applications to run as x86.
+The API check validates the export surface without mutating a book. It checks engine exports from `libgnc-engine.dll`, module initialization from `libgnc-module.dll`, and runtime/binreloc setup exports from `libgnc-core-utils.dll`. The SDK still calls native GnuCash from the packaged win-x86 bridge process; the public .NET library never exposes GnuCash pointers or requires consuming applications to run as x86.
+
+The `validate-session` command opens a specific book read-only through the native engine:
+
+```powershell
+GnuCash.DotNet.Bridge validate-session --book-path "D:\books\sample.gnucash"
+GnuCash.DotNet.Bridge validate-session --install-path "C:\Program Files (x86)\gnucash" --book-path "D:\books\sample.gnucash"
+GnuCash.DotNet.Bridge validate-session --book-path "D:\books\sample.gnucash" --json
+```
+
+The bridge configures process-local GnuCash runtime state before opening a native session. In particular it points GnuCash binreloc at the installed prefix, runs GnuCash environment setup, initializes the module system, initializes the engine, normalizes Windows paths to `file:` URIs, and then calls `qof_session_begin` with `SESSION_READ_ONLY`.
 
 The first transport is newline-delimited JSON over stdio because it is simple to launch, test, and package with the SDK. Named pipes can still be added later if the protocol needs long-running multiplexed sessions.
 
