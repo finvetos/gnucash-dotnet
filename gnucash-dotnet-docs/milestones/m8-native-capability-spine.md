@@ -56,6 +56,9 @@ This is intentionally larger than M7. The goal is to move from "the bridge can o
 5. SDK business object surface over the proven bridge workflow.
 6. Import preview/apply and reconciliation verification.
 
+M9 continues the last two items as SDK-level workflow APIs:
+[SDK Business Import Reconciliation](m9-sdk-business-import-reconciliation.md).
+
 ## Risks
 
 - GLib collection traversal may require small bridge-owned helpers to stay safe.

@@ -1,4 +1,5 @@
 using GnuCash.DotNet.Models;
+using System.Numerics;
 
 namespace GnuCash.DotNet;
 
@@ -131,6 +132,39 @@ public sealed partial class GnuCashBook
         }
 
         return new GnuCashAmount($"{numerator}/{denominator}", numerator, denominator);
+    }
+
+    private static GnuCashAmount Subtract(GnuCashAmount left, GnuCashAmount right) =>
+        Sum([left, Negate(right)]);
+
+    private static GnuCashAmount Negate(GnuCashAmount amount)
+    {
+        if (amount.Numerator is null || amount.Denominator is null or 0)
+        {
+            throw new InvalidOperationException(
+                $"Cannot negate amount '{amount.RawValue}' because it is not a rational GnuCash value.");
+        }
+
+        var numerator = checked(-amount.Numerator.Value);
+        return new GnuCashAmount($"{numerator}/{amount.Denominator}", numerator, amount.Denominator);
+    }
+
+    private static bool IsZero(GnuCashAmount amount) =>
+        amount.Numerator == 0 &&
+        amount.Denominator is not null and not 0;
+
+    private static bool AreEquivalentAmounts(GnuCashAmount? left, GnuCashAmount? right)
+    {
+        if (left?.Numerator is null ||
+            left.Denominator is null or 0 ||
+            right?.Numerator is null ||
+            right.Denominator is null or 0)
+        {
+            return false;
+        }
+
+        return new BigInteger(left.Numerator.Value) * right.Denominator.Value ==
+               new BigInteger(right.Numerator.Value) * left.Denominator.Value;
     }
 
     private static (long Numerator, long Denominator) Add(

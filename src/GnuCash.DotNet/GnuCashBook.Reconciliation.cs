@@ -54,6 +54,49 @@ public sealed partial class GnuCashBook
         CancellationToken cancellationToken) =>
         GetReconciliationSummaryAsync(accountId, null, cancellationToken);
 
+    /// <summary>
+    /// Compares the current cleared plus reconciled balance with an expected statement ending balance.
+    /// </summary>
+    public async Task<GnuCashReconciliationPreview> PreviewReconciliationAsync(
+        string accountId,
+        GnuCashAmount expectedEndingBalance,
+        GnuCashTransactionQuery? query = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
+        ArgumentNullException.ThrowIfNull(expectedEndingBalance);
+
+        var summary = await GetReconciliationSummaryAsync(accountId, query, cancellationToken).ConfigureAwait(false);
+        if (summary is null)
+        {
+            throw new InvalidOperationException(
+                $"Cannot preview reconciliation because account '{accountId}' does not exist in this book.");
+        }
+
+        var actualEndingBalance = Sum([summary.ClearedBalance, summary.ReconciledBalance]);
+        var variance = Subtract(actualEndingBalance, expectedEndingBalance);
+
+        return new GnuCashReconciliationPreview(
+            summary.AccountId,
+            summary.AccountName,
+            summary.CommoditySpace,
+            summary.CommodityId,
+            expectedEndingBalance,
+            actualEndingBalance,
+            variance,
+            IsZero(variance),
+            summary);
+    }
+
+    /// <summary>
+    /// Compares the current cleared plus reconciled balance with an expected statement ending balance.
+    /// </summary>
+    public Task<GnuCashReconciliationPreview> PreviewReconciliationAsync(
+        string accountId,
+        GnuCashAmount expectedEndingBalance,
+        CancellationToken cancellationToken) =>
+        PreviewReconciliationAsync(accountId, expectedEndingBalance, null, cancellationToken);
+
     private static GnuCashReconciliationSummary CreateReconciliationSummary(
         GnuCashAccount account,
         IReadOnlyList<GnuCashTransaction> transactions,

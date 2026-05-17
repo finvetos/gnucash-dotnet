@@ -157,6 +157,29 @@ public sealed class GnuCashClient
         return prices.Select(Map).ToArray();
     }
 
+    internal async Task<GnuCashCustomerCreateResult> CreateCustomerInCopiedBookAsync(
+        string bookPath,
+        GnuCashCustomerCreateRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(bookPath);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var status = await SendBridgeRequestAsync<GnuCashNativeCustomerWriteStatus>(
+            BridgeRequestKind.ValidateNativeCustomerWrite,
+            new GnuCashNativeCustomerWriteRequest(
+                bookPath,
+                request.CustomerId,
+                request.CustomerName,
+                request.CurrencySpace,
+                request.CurrencyId,
+                request.WorkingBookPath,
+                options.InstallPath),
+            cancellationToken).ConfigureAwait(false);
+
+        return Map(status);
+    }
+
     private async Task<TPayload> SendBridgeRequestAsync<TPayload>(
         BridgeRequestKind kind,
         object payload,
@@ -266,4 +289,21 @@ public sealed class GnuCashClient
             price.Source,
             price.Type,
             Map(price.Value));
+
+    private static GnuCashCustomerCreateResult Map(GnuCashNativeCustomerWriteStatus status) =>
+        new(
+            status.IsReady,
+            status.SourceBookPath,
+            status.WorkingBookPath,
+            status.CustomerId,
+            status.CustomerName,
+            status.CurrencySpace,
+            status.CurrencyId,
+            status.CreatedCustomerGuid,
+            status.BeforeCustomerCount,
+            status.AfterCustomerCount,
+            status.FoundAfterReopen,
+            status.BackendErrorCode,
+            status.BackendErrorMessage,
+            status.Message);
 }
