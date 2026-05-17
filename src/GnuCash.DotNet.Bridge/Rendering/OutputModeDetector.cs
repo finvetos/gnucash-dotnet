@@ -15,6 +15,11 @@ public sealed class OutputModeDetector
             return OutputMode.Json;
         }
 
+        if (IsFormat(explicitFormat, "rich") || IsFormat(explicitFormat, "ansi"))
+        {
+            return OutputMode.Rich;
+        }
+
         if (HasFlag(args, "--plain") ||
             IsFormat(explicitFormat, "plain") ||
             IsFormat(explicitFormat, "ascii") ||

@@ -25,6 +25,14 @@ public sealed class OutputModeDetectorTests
     }
 
     [Fact]
+    public void UsesRichWhenRichFormatIsExplicitEvenWhenOutputIsRedirected()
+    {
+        var mode = detector.Detect(["list", "--format", "rich"], isOutputRedirected: true, new Hashtable());
+
+        Assert.Equal(OutputMode.Rich, mode);
+    }
+
+    [Fact]
     public void UsesPlainWhenNoColorIsPresent()
     {
         var environment = new Hashtable { ["NO_COLOR"] = "1" };

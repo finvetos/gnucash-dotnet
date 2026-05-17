@@ -1,4 +1,5 @@
 using GnuCash.DotNet.Bridge.Commands;
+using GnuCash.DotNet.Protocol.Contracts;
 using Spectre.Console;
 
 namespace GnuCash.DotNet.Bridge.Rendering;
@@ -19,6 +20,7 @@ public sealed class SpectreCliRenderer : ICliRenderer
 
     public void WriteHelp(IReadOnlyList<CommandDescriptor> commands)
     {
+        WriteLogo();
         console.Write(
             new Panel("[bold]GnuCash.DotNet.Bridge[/]\n\nUsage: [yellow]GnuCash.DotNet.Bridge <command> [options][/]")
                 .Header("Help")
@@ -29,6 +31,7 @@ public sealed class SpectreCliRenderer : ICliRenderer
 
     public void WriteCommandList(IReadOnlyList<CommandDescriptor> commands)
     {
+        WriteLogo();
         var table = new Table()
             .Border(TableBorder.Rounded)
             .AddColumn("[bold]Command[/]")
@@ -46,8 +49,69 @@ public sealed class SpectreCliRenderer : ICliRenderer
         console.Write(table);
     }
 
+    public void WriteGnuCashValidation(GnuCashInstallationStatus status)
+    {
+        WriteLogo();
+        if (status.IsReady)
+        {
+            console.Write(new Panel("[bold green]GnuCash is ready[/]\nThe bridge can use the local installation.")
+                .Header("Validation")
+                .Border(BoxBorder.Rounded));
+
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .AddColumn("[bold]Field[/]")
+                .AddColumn("[bold]Value[/]");
+
+            table.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+            table.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+            table.AddRow("Source", Markup.Escape(status.Source ?? "unknown"));
+            console.Write(table);
+            return;
+        }
+
+        console.Write(new Panel("[bold red]GnuCash is not ready[/]\nInstall GnuCash for Windows first, then run validation again.")
+            .Header("Validation")
+            .Border(BoxBorder.Rounded));
+
+        WriteValues("Checked paths", status.CheckedPaths);
+        WriteValues("Missing required paths", status.MissingPaths);
+    }
+
     public void WriteJson<T>(T value)
     {
         new PlainCliRenderer(writer, json: true).WriteJson(value);
+    }
+
+    private void WriteValues(string title, IReadOnlyList<string> values)
+    {
+        if (values.Count == 0)
+        {
+            return;
+        }
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]" + Markup.Escape(title) + "[/]");
+
+        foreach (var value in values)
+        {
+            table.AddRow(Markup.Escape(value));
+        }
+
+        console.Write(table);
+    }
+
+    private void WriteLogo()
+    {
+        for (var i = 0; i < CliLogo.GnuCashLines.Count; i++)
+        {
+            console.Markup("[bold lime]" + Markup.Escape(CliLogo.GnuCashLines[i]) + "[/]");
+            console.Markup("[bold yellow]-" + Markup.Escape(CliLogo.DotNetLines[i]) + "[/]");
+            console.WriteLine();
+        }
+
+        console.MarkupLine("[bold lime]GnuCash[/][bold yellow]-DotNet[/]");
+        console.WriteLine();
     }
 }

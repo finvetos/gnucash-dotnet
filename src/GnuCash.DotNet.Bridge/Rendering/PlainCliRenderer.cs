@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GnuCash.DotNet.Bridge.Commands;
+using GnuCash.DotNet.Protocol.Contracts;
 
 namespace GnuCash.DotNet.Bridge.Rendering;
 
@@ -22,6 +23,7 @@ public sealed class PlainCliRenderer : ICliRenderer
             return;
         }
 
+        WriteLogo();
         writer.WriteLine("GnuCash.DotNet.Bridge");
         writer.WriteLine();
         writer.WriteLine("Usage:");
@@ -48,6 +50,7 @@ public sealed class PlainCliRenderer : ICliRenderer
             return;
         }
 
+        WriteLogo();
         writer.WriteLine("Commands");
         writer.WriteLine("--------");
         foreach (var command in commands)
@@ -57,10 +60,60 @@ public sealed class PlainCliRenderer : ICliRenderer
         }
     }
 
+    public void WriteGnuCashValidation(GnuCashInstallationStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash installation validation");
+        writer.WriteLine("-------------------------------");
+        writer.WriteLine($"Status:  {(status.IsReady ? "Ready" : "Not ready")}");
+
+        if (status.IsReady)
+        {
+            writer.WriteLine($"Path:    {status.InstallPath}");
+            writer.WriteLine($"Version: {status.DisplayVersion ?? "unknown"}");
+            writer.WriteLine($"Source:  {status.Source ?? "unknown"}");
+            writer.WriteLine();
+            writer.WriteLine("GnuCash is installed and the bridge can use it.");
+            return;
+        }
+
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+        WriteList("Checked paths", status.CheckedPaths);
+        WriteList("Missing required paths", status.MissingPaths);
+    }
+
     public void WriteJson<T>(T value)
     {
         writer.WriteLine(JsonSerializer.Serialize(
             value,
             new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private void WriteList(string title, IReadOnlyList<string> values)
+    {
+        if (values.Count == 0)
+        {
+            return;
+        }
+
+        writer.WriteLine();
+        writer.WriteLine(title + ":");
+        foreach (var value in values)
+        {
+            writer.WriteLine($"  {value}");
+        }
+    }
+
+    private void WriteLogo()
+    {
+        writer.WriteLine(CliLogo.PlainBanner);
+        writer.WriteLine();
     }
 }

@@ -48,3 +48,20 @@ public sealed record BridgeHandshake(
     string BridgeVersion,
     string ProcessArchitecture,
     string? GnuCashInstallPath);
+
+/// <summary>
+/// Optional payload for locating a GnuCash installation.
+/// </summary>
+public sealed record LocateGnuCashRequest(string? InstallPath = null);
+
+/// <summary>
+/// Result of validating the local GnuCash installation needed by the bridge.
+/// </summary>
+public sealed record GnuCashInstallationStatus(
+    bool IsReady,
+    string? InstallPath,
+    string? DisplayVersion,
+    string? Source,
+    IReadOnlyList<string> MissingPaths,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);

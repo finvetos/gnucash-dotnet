@@ -1,6 +1,7 @@
 using System.CommandLine;
-using System.Runtime.InteropServices;
 using GnuCash.DotNet.Bridge.Commands;
+using GnuCash.DotNet.Bridge.Discovery;
+using GnuCash.DotNet.Bridge.Headless;
 using GnuCash.DotNet.Bridge.Rendering;
 using GnuCash.DotNet.Protocol.Contracts;
 using Microsoft.Extensions.Logging;
@@ -37,12 +38,14 @@ public sealed class CliApplication
         string[] args,
         TextWriter? output = null,
         TextWriter? error = null,
-        bool? isOutputRedirected = null)
+        bool? isOutputRedirected = null,
+        TextReader? input = null)
     {
         ArgumentNullException.ThrowIfNull(args);
 
         var outputWriter = output ?? Console.Out;
         var errorWriter = error ?? Console.Error;
+        var inputReader = input ?? Console.In;
         var mode = outputModeDetector.Detect(
             args,
             isOutputRedirected ?? Console.IsOutputRedirected,
@@ -51,7 +54,7 @@ public sealed class CliApplication
 
         try
         {
-            var root = BuildRootCommand(renderer);
+            var root = BuildRootCommand(renderer, inputReader, outputWriter, errorWriter);
             var parseResult = root.Parse(args);
             logger.LogDebug("Invoking bridge with output mode {OutputMode}.", mode);
             return await parseResult.InvokeAsync().ConfigureAwait(false);
@@ -63,9 +66,16 @@ public sealed class CliApplication
         }
     }
 
-    public RootCommand BuildRootCommand(ICliRenderer renderer)
+    public RootCommand BuildRootCommand(
+        ICliRenderer renderer,
+        TextReader input,
+        TextWriter output,
+        TextWriter error)
     {
         ArgumentNullException.ThrowIfNull(renderer);
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(error);
 
         var root = new RootCommand("GnuCash.DotNet.Bridge helper process.");
         AddOutputOptions(root);
@@ -74,6 +84,8 @@ public sealed class CliApplication
         root.Subcommands.Add(BuildHelpCommand(renderer));
         root.Subcommands.Add(BuildListCommand(renderer));
         root.Subcommands.Add(BuildPingCommand(renderer));
+        root.Subcommands.Add(BuildValidateCommand(renderer));
+        root.Subcommands.Add(BuildHeadlessCommand(input, output, error));
 
         return root;
     }
@@ -123,14 +135,44 @@ public sealed class CliApplication
         AddOutputOptions(command);
         command.SetAction(_ =>
         {
-            var handshake = new BridgeHandshake(
-                BridgeProtocol.CurrentVersion,
-                typeof(CliApplication).Assembly.GetName().Version?.ToString() ?? "0.0.0",
-                RuntimeInformation.ProcessArchitecture.ToString(),
-                Environment.GetEnvironmentVariable("GNUCASH_HOME"));
-
-            renderer.WriteJson(handshake);
+            renderer.WriteJson(BridgeRequestProcessor.CreateHandshake());
             return 0;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Validate a specific GnuCash installation path."
+        };
+        var command = new Command("validate", "Validate the local GnuCash installation.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.SetAction(parseResult =>
+        {
+            var installPath = parseResult.GetValue(installPathOption);
+            var status = new GnuCashInstallationLocator().Validate(installPath);
+            renderer.WriteGnuCashValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildHeadlessCommand(TextReader input, TextWriter output, TextWriter error)
+    {
+        var command = new Command("headless", "Run the SDK protocol over stdin/stdout.");
+        command.Options.Add(new Option<bool>("--stdio")
+        {
+            Description = "Use newline-delimited JSON over standard input and standard output."
+        });
+        command.SetAction(_ =>
+        {
+            var session = new HeadlessBridgeSession(new BridgeRequestProcessor());
+            return session.RunAsync(input, output, error).GetAwaiter().GetResult();
         });
 
         return command;

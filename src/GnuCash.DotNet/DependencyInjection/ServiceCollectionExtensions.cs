@@ -2,6 +2,8 @@ using GnuCash.DotNet.Options;
 using GnuCash.DotNet.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace GnuCash.DotNet.DependencyInjection;
 
@@ -26,7 +28,11 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddSingleton<GnuCashClient>();
+        services.AddSingleton<GnuCashBridgeProcess>();
+        services.AddSingleton(serviceProvider => new GnuCashClient(
+            serviceProvider.GetRequiredService<ILogger<GnuCashClient>>(),
+            serviceProvider.GetRequiredService<IOptions<GnuCashBridgeOptions>>(),
+            serviceProvider.GetRequiredService<GnuCashBridgeProcess>()));
 
         return services;
     }
