@@ -23,5 +23,6 @@ public sealed class BridgeContractsTests
         Assert.Equal(5, (int)BridgeRequestKind.ListCommodities);
         Assert.Equal(6, (int)BridgeRequestKind.ListTransactions);
         Assert.Equal(7, (int)BridgeRequestKind.ListPrices);
+        Assert.Equal(8, (int)BridgeRequestKind.ValidateNativeApi);
     }
 }

@@ -11,5 +11,7 @@ public interface ICliRenderer
 
     void WriteGnuCashValidation(GnuCashInstallationStatus status);
 
+    void WriteNativeApiValidation(GnuCashNativeApiStatus status);
+
     void WriteJson<T>(T value);
 }

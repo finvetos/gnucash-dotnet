@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using GnuCash.DotNet.Bridge.Books;
 using GnuCash.DotNet.Bridge.Discovery;
+using GnuCash.DotNet.Bridge.Native;
 using GnuCash.DotNet.Protocol.Contracts;
 
 namespace GnuCash.DotNet.Bridge.Headless;
@@ -13,18 +14,21 @@ public sealed class BridgeRequestProcessor
 {
     private readonly GnuCashBookReader bookReader;
     private readonly GnuCashInstallationLocator locator;
+    private readonly GnuCashNativeApiProbe nativeApiProbe;
 
     public BridgeRequestProcessor()
-        : this(new GnuCashInstallationLocator(), new GnuCashBookReader())
+        : this(new GnuCashInstallationLocator(), new GnuCashBookReader(), new GnuCashNativeApiProbe())
     {
     }
 
     public BridgeRequestProcessor(
         GnuCashInstallationLocator locator,
-        GnuCashBookReader bookReader)
+        GnuCashBookReader bookReader,
+        GnuCashNativeApiProbe nativeApiProbe)
     {
         this.locator = locator;
         this.bookReader = bookReader;
+        this.nativeApiProbe = nativeApiProbe;
     }
 
     public BridgeResponse Process(BridgeRequest request)
@@ -40,6 +44,7 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ListAccounts => Succeeded(request, CreateListAccountsPayload(request)),
             BridgeRequestKind.ListTransactions => Succeeded(request, CreateListTransactionsPayload(request)),
             BridgeRequestKind.ListPrices => Succeeded(request, CreateListPricesPayload(request)),
+            BridgeRequestKind.ValidateNativeApi => Succeeded(request, CreateValidateNativeApiPayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -66,16 +71,15 @@ public sealed class BridgeRequestProcessor
 
     private string CreateLocateGnuCashPayload(BridgeRequest request)
     {
-        var payload = string.IsNullOrWhiteSpace(request.PayloadJson)
-            ? new LocateGnuCashRequest()
-            : JsonSerializer.Deserialize<LocateGnuCashRequest>(
-                  request.PayloadJson,
-                  BridgeJson.SerializerOptions) ?? new LocateGnuCashRequest();
-
         return JsonSerializer.Serialize(
-            locator.Validate(payload.InstallPath),
+            locator.Validate(DeserializeLocateRequest(request).InstallPath),
             BridgeJson.SerializerOptions);
     }
+
+    private string CreateValidateNativeApiPayload(BridgeRequest request) =>
+        JsonSerializer.Serialize(
+            nativeApiProbe.Validate(DeserializeLocateRequest(request).InstallPath),
+            BridgeJson.SerializerOptions);
 
     private string CreateOpenBookPayload(BridgeRequest request)
     {
@@ -119,4 +123,11 @@ public sealed class BridgeRequestProcessor
                    BridgeJson.SerializerOptions) ??
                throw new ArgumentException("A valid book request payload is required.", nameof(request));
     }
+
+    private static LocateGnuCashRequest DeserializeLocateRequest(BridgeRequest request) =>
+        string.IsNullOrWhiteSpace(request.PayloadJson)
+            ? new LocateGnuCashRequest()
+            : JsonSerializer.Deserialize<LocateGnuCashRequest>(
+                  request.PayloadJson,
+                  BridgeJson.SerializerOptions) ?? new LocateGnuCashRequest();
 }

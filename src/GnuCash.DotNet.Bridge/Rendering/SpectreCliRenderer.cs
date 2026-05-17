@@ -78,6 +78,29 @@ public sealed class SpectreCliRenderer : ICliRenderer
         WriteValues("Missing required paths", status.MissingPaths);
     }
 
+    public void WriteNativeApiValidation(GnuCashNativeApiStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Native API exports are ready[/]" : "[bold red]Native API exports are not ready[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native API")
+            .Border(BoxBorder.Rounded));
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+
+        table.AddRow("Callable now", status.CanCallFromCurrentProcess ? "Yes" : "No");
+        table.AddRow("Architecture", Markup.Escape(status.ProcessArchitecture));
+        table.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+        table.AddRow("Engine", Markup.Escape(status.EnginePath ?? "unknown"));
+        table.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+        console.Write(table);
+
+        WriteValues("Missing native exports", status.MissingExports);
+    }
+
     public void WriteJson<T>(T value)
     {
         new PlainCliRenderer(writer, json: true).WriteJson(value);

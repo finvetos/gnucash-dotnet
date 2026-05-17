@@ -2,6 +2,7 @@ using System.CommandLine;
 using GnuCash.DotNet.Bridge.Commands;
 using GnuCash.DotNet.Bridge.Discovery;
 using GnuCash.DotNet.Bridge.Headless;
+using GnuCash.DotNet.Bridge.Native;
 using GnuCash.DotNet.Bridge.Rendering;
 using GnuCash.DotNet.Protocol.Contracts;
 using Microsoft.Extensions.Logging;
@@ -85,6 +86,7 @@ public sealed class CliApplication
         root.Subcommands.Add(BuildListCommand(renderer));
         root.Subcommands.Add(BuildPingCommand(renderer));
         root.Subcommands.Add(BuildValidateCommand(renderer));
+        root.Subcommands.Add(BuildValidateNativeApiCommand(renderer));
         root.Subcommands.Add(BuildHeadlessCommand(input, output, error));
 
         return root;
@@ -156,6 +158,26 @@ public sealed class CliApplication
             var installPath = parseResult.GetValue(installPathOption);
             var status = new GnuCashInstallationLocator().Validate(installPath);
             renderer.WriteGnuCashValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildValidateNativeApiCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Validate a specific GnuCash installation path."
+        };
+        var command = new Command("validate-api", "Validate the native GnuCash API surface.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.SetAction(parseResult =>
+        {
+            var installPath = parseResult.GetValue(installPathOption);
+            var status = new GnuCashNativeApiProbe().Validate(installPath);
+            renderer.WriteNativeApiValidation(status);
             return status.IsReady ? 0 : 1;
         });
 

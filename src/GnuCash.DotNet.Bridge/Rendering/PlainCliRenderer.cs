@@ -89,6 +89,41 @@ public sealed class PlainCliRenderer : ICliRenderer
         WriteList("Missing required paths", status.MissingPaths);
     }
 
+    public void WriteNativeApiValidation(GnuCashNativeApiStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native API validation");
+        writer.WriteLine("-----------------------------");
+        writer.WriteLine($"Status:       {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Callable now: {(status.CanCallFromCurrentProcess ? "Yes" : "No")}");
+        writer.WriteLine($"Architecture: {status.ProcessArchitecture}");
+
+        if (!string.IsNullOrWhiteSpace(status.InstallPath))
+        {
+            writer.WriteLine($"Path:         {status.InstallPath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.EnginePath))
+        {
+            writer.WriteLine($"Engine:       {status.EnginePath}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(status.DisplayVersion))
+        {
+            writer.WriteLine($"Version:      {status.DisplayVersion}");
+        }
+
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+        WriteList("Missing native exports", status.MissingExports);
+    }
+
     public void WriteJson<T>(T value)
     {
         writer.WriteLine(JsonSerializer.Serialize(

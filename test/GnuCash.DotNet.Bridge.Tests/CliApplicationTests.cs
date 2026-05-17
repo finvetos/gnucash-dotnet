@@ -23,6 +23,7 @@ public sealed class CliApplicationTests
         Assert.Contains("list", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("ping", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("validate-api", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("headless", writer.ToString(), StringComparison.Ordinal);
     }
 
@@ -43,6 +44,25 @@ public sealed class CliApplicationTests
         Assert.Contains("GnuCash-DotNet", output, StringComparison.Ordinal);
         Assert.Contains("Status:  Ready", output, StringComparison.Ordinal);
         Assert.Contains(fixture.InstallPath, output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ValidateApiCommandReportsMissingExportsWhenEngineDllIsNotPortableExecutable()
+    {
+        using var fixture = GnuCashInstallFixture.Create();
+        var writer = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            ["validate-api", "--install-path", fixture.InstallPath, "--plain"],
+            writer,
+            isOutputRedirected: false);
+
+        var output = writer.ToString();
+        Assert.Equal(1, exitCode);
+        Assert.Contains("GnuCash native API validation", output, StringComparison.Ordinal);
+        Assert.Contains("Status:       Not ready", output, StringComparison.Ordinal);
+        Assert.Contains("libgnc-engine.dll", output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -103,6 +123,38 @@ public sealed class CliApplicationTests
         Assert.NotNull(status);
         Assert.True(status!.IsReady);
         Assert.Equal(fixture.InstallPath, status.InstallPath);
+    }
+
+    [Fact]
+    public async Task HeadlessCommandCanValidateNativeApiUsingProtocolRequest()
+    {
+        using var fixture = GnuCashInstallFixture.Create();
+        var locatePayload = JsonSerializer.Serialize(new LocateGnuCashRequest(fixture.InstallPath));
+        var locate = new BridgeRequest(Guid.NewGuid(), BridgeRequestKind.ValidateNativeApi, locatePayload);
+        var input = new StringReader(JsonSerializer.Serialize(locate) + Environment.NewLine);
+        var output = new StringWriter();
+        var error = new StringWriter();
+        var app = CliApplication.CreateDefault();
+
+        var exitCode = await app.RunAsync(
+            ["headless", "--stdio"],
+            output,
+            error,
+            isOutputRedirected: true,
+            input: input);
+
+        var response = JsonSerializer.Deserialize<BridgeResponse>(
+            output.ToString().Trim(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var status = JsonSerializer.Deserialize<GnuCashNativeApiStatus>(
+            response!.PayloadJson!,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.Equal(0, exitCode);
+        Assert.Empty(error.ToString());
+        Assert.NotNull(status);
+        Assert.False(status!.IsReady);
+        Assert.Contains("qof_session_new", status.RequiredExports);
     }
 
     [Fact]

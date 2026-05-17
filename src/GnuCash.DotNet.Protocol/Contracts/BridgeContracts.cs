@@ -20,7 +20,8 @@ public enum BridgeRequestKind
     Shutdown = 4,
     ListCommodities = 5,
     ListTransactions = 6,
-    ListPrices = 7
+    ListPrices = 7,
+    ValidateNativeApi = 8
 }
 
 /// <summary>
@@ -66,6 +67,21 @@ public sealed record GnuCashInstallationStatus(
     string? DisplayVersion,
     string? Source,
     IReadOnlyList<string> MissingPaths,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Result of validating the native GnuCash engine API surface needed by write-capable bridge features.
+/// </summary>
+public sealed record GnuCashNativeApiStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string? EnginePath,
+    string ProcessArchitecture,
+    IReadOnlyList<string> RequiredExports,
+    IReadOnlyList<string> MissingExports,
     IReadOnlyList<string> CheckedPaths,
     string Message);
 

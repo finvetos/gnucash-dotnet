@@ -236,7 +236,7 @@ Target:
 
 ### M7 - Business Objects
 
-Status: pending.
+Status: native API path selected; validation foundation started.
 
 Target:
 
@@ -244,6 +244,12 @@ Target:
 - Invoices and bills.
 - Payments.
 - Tax tables and terms.
+
+Implementation decision:
+
+- Business object reads and writes must use the native GnuCash engine API through the win-x86 bridge process.
+- Direct XML or SQL access can remain read-only bootstrap support, but must not be used as the authoritative mutation path.
+- See `architecture/decisions/ADR-0002-native-api-for-writes.md`.
 
 ### M8 - Native Runtime Parity Review
 
@@ -463,3 +469,30 @@ Deferred:
 Next work:
 
 - Start M7 only after deciding whether business objects should come from XML parsing, native engine APIs, or a database/backend adapter.
+
+### 2026-05-17 - M7 Native API Direction Accepted
+
+Decision:
+
+- Use the installed GnuCash native engine API for business objects and all write-capable operations.
+- Keep the public SDK pointer-free and AnyCPU/x64 friendly.
+- Keep native calls inside the packaged win-x86 bridge process so the wrapper works with the official Windows installer.
+- Treat direct schema/XML mutation as out of scope for write support.
+
+Discovery:
+
+- The stock Windows installation exposes the required business and session symbols from `bin\libgnc-engine.dll`.
+- Export checks found `qof_session_*`, `gncCustomer*`, `gncVendor*`, `gncEmployee*`, `gncJob*`, `gncInvoice*`, `gncEntry*`, `gncOwner*`, `gncTaxTable*`, `gncBillTerm*`, `xaccTrans*`, `xaccSplit*`, `xaccAccount*`, and `gnc_commodity*`.
+
+Delivered:
+
+- Added `ValidateNativeApi` as the next bridge protocol capability.
+- Added a bridge-side native API probe that inspects `libgnc-engine.dll` for the required write/business API exports.
+- Added a human-facing `validate-api` CLI command.
+- Added tests for the new protocol value, CLI command behavior, and headless validation request.
+
+Next work:
+
+- Build the native session abstraction for open/load/save/close.
+- Prove one read-only native query against a copied disposable book.
+- Then add customer creation as the first write workflow.
