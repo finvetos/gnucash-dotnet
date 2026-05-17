@@ -27,7 +27,8 @@ public enum BridgeRequestKind
     ValidateNativeWriteRoundTrip = 11,
     ValidateNativeCustomerWrite = 12,
     ValidateNativeTransactionWrite = 13,
-    ListCustomers = 14
+    ListCustomers = 14,
+    ValidateNativeTransactionBatchWrite = 15
 }
 
 /// <summary>
@@ -113,6 +114,26 @@ public sealed record GnuCashNativeTransactionWriteRequest(
     string? Number = null,
     string? WorkingBookPath = null,
     string? InstallPath = null);
+
+/// <summary>
+/// Request payload for validating multiple native transaction writes in one copied book.
+/// </summary>
+public sealed record GnuCashNativeTransactionBatchWriteRequest(
+    string SourceBookPath,
+    IReadOnlyList<GnuCashNativeTransactionWriteItemRequest> Transactions,
+    string? WorkingBookPath = null,
+    string? InstallPath = null);
+
+/// <summary>
+/// Single transaction payload inside a copied-book batch write request.
+/// </summary>
+public sealed record GnuCashNativeTransactionWriteItemRequest(
+    string Description,
+    DateTimeOffset PostedAt,
+    IReadOnlyList<GnuCashNativeTransactionSplitWriteRequest> Splits,
+    string CurrencySpace = "CURRENCY",
+    string CurrencyId = "USD",
+    string? Number = null);
 
 /// <summary>
 /// Split payload for native transaction write validation.
@@ -278,6 +299,41 @@ public sealed record GnuCashNativeTransactionWriteStatus(
     string? BackendErrorMessage,
     IReadOnlyList<string> CheckedPaths,
     string Message);
+
+/// <summary>
+/// Result of creating a batch of transactions in a copied GnuCash book and verifying them after reopen.
+/// </summary>
+public sealed record GnuCashNativeTransactionBatchWriteStatus(
+    bool IsReady,
+    bool CanCallFromCurrentProcess,
+    string? InstallPath,
+    string? DisplayVersion,
+    string SourceBookPath,
+    string WorkingBookPath,
+    string? EnginePath,
+    string ProcessArchitecture,
+    int RequestedTransactionCount,
+    int CreatedTransactionCount,
+    int SplitCount,
+    IReadOnlyList<GnuCashNativeCreatedTransactionRecord> CreatedTransactions,
+    int? BeforeTransactionCount,
+    int? AfterTransactionCount,
+    int FoundAfterReopenCount,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Created transaction verification row inside a native batch write result.
+/// </summary>
+public sealed record GnuCashNativeCreatedTransactionRecord(
+    int Index,
+    string Description,
+    string? Number,
+    string? CreatedTransactionGuid,
+    int SplitCount,
+    bool FoundAfterReopen);
 
 /// <summary>
 /// Request payload for operations that read a GnuCash book file.

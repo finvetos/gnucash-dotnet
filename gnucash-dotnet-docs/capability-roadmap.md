@@ -294,6 +294,25 @@ Target:
 
 Detailed journal: [M10 Native Workflow Completion](milestones/m10-native-workflow-completion.md).
 
+### M11 - Full Accounting Workflows
+
+Status: in progress.
+
+Target:
+
+- Import apply.
+- Reconciliation write.
+- Business reads and full business workflows.
+- Safer source-book writes.
+- Native smoke automation.
+- Investment and multi-currency workflows.
+- Book lifecycle.
+- Backend coverage.
+- Reporting expansion.
+- Additional import formats.
+
+Detailed journal: [M11 Full Accounting Workflows](milestones/m11-full-accounting-workflows.md).
+
 ## Journal
 
 Early roadmap notes now live in

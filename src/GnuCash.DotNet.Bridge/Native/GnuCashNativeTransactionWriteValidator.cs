@@ -6,7 +6,7 @@ namespace GnuCash.DotNet.Bridge.Native;
 /// <summary>
 /// Creates a balanced transaction in a copied book and verifies it after reopen.
 /// </summary>
-public sealed class GnuCashNativeTransactionWriteValidator
+public sealed partial class GnuCashNativeTransactionWriteValidator
 {
     private readonly GnuCashNativeRuntime runtime;
 
@@ -101,6 +101,11 @@ public sealed class GnuCashNativeTransactionWriteValidator
         GnuCashNativeMethods.xaccTransBeginEdit(transaction);
         GnuCashNativeMethods.xaccTransSetCurrency(transaction, currency);
         GnuCashNativeMethods.xaccTransSetDescription(transaction, input.Description);
+        if (!string.IsNullOrWhiteSpace(input.Number))
+        {
+            GnuCashNativeMethods.xaccTransSetNum(transaction, input.Number);
+        }
+
         GnuCashNativeMethods.xaccTransSetDatePostedSecsNormalized(transaction, input.PostedAt.ToUnixTimeSeconds());
 
         foreach (var split in input.Splits)
@@ -121,6 +126,15 @@ public sealed class GnuCashNativeTransactionWriteValidator
             GnuCashNativeMethods.xaccSplitSetParent(nativeSplit, transaction);
             GnuCashNativeMethods.xaccSplitSetValue(nativeSplit, split.Value);
             GnuCashNativeMethods.xaccSplitSetAmount(nativeSplit, split.Quantity);
+            if (!string.IsNullOrWhiteSpace(split.Memo))
+            {
+                GnuCashNativeMethods.xaccSplitSetMemo(nativeSplit, split.Memo);
+            }
+
+            if (!string.IsNullOrWhiteSpace(split.Action))
+            {
+                GnuCashNativeMethods.xaccSplitSetAction(nativeSplit, split.Action);
+            }
         }
 
         GnuCashNativeMethods.xaccTransCommitEdit(transaction);
@@ -197,7 +211,7 @@ public sealed class GnuCashNativeTransactionWriteValidator
             return GnuCashTransactionWriteInput.Failed(request, string.Empty, string.Empty, [], "A transaction description is required.");
         }
 
-        if (request.Splits.Count < 2)
+        if (request.Splits is null || request.Splits.Count < 2)
         {
             return GnuCashTransactionWriteInput.Failed(request, string.Empty, string.Empty, [], "A transaction must contain at least two splits.");
         }
@@ -227,10 +241,13 @@ public sealed class GnuCashNativeTransactionWriteValidator
             : GnuCashTransactionWriteInput.Ready(request, source, working, splitRead.Splits!);
     }
 
-    private static GnuCashSplitRead ReadSplits(GnuCashNativeTransactionWriteRequest request)
+    private static GnuCashSplitRead ReadSplits(GnuCashNativeTransactionWriteRequest request) =>
+        ReadSplits(request.Splits);
+
+    private static GnuCashSplitRead ReadSplits(IReadOnlyList<GnuCashNativeTransactionSplitWriteRequest> splitRequests)
     {
         var splits = new List<GnuCashTransactionSplitWriteInput>();
-        foreach (var split in request.Splits)
+        foreach (var split in splitRequests)
         {
             if (string.IsNullOrWhiteSpace(split.AccountId))
             {

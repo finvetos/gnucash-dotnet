@@ -41,3 +41,39 @@ public sealed record GnuCashTransactionCreateResult(
     int? BackendErrorCode,
     string? BackendErrorMessage,
     string Message);
+
+/// <summary>
+/// Request for creating multiple balanced transactions through the native engine in one copied book.
+/// </summary>
+public sealed record GnuCashTransactionBatchCreateRequest(
+    IReadOnlyList<GnuCashTransactionCreateRequest> Transactions,
+    string? WorkingBookPath = null);
+
+/// <summary>
+/// Result of creating multiple transactions through the native engine and reopening the copied book.
+/// </summary>
+public sealed record GnuCashTransactionBatchCreateResult(
+    bool IsReady,
+    string SourceBookPath,
+    string WorkingBookPath,
+    int RequestedTransactionCount,
+    int CreatedTransactionCount,
+    int SplitCount,
+    IReadOnlyList<GnuCashCreatedTransactionResult> CreatedTransactions,
+    int? BeforeTransactionCount,
+    int? AfterTransactionCount,
+    int FoundAfterReopenCount,
+    int? BackendErrorCode,
+    string? BackendErrorMessage,
+    string Message);
+
+/// <summary>
+/// Per-transaction verification row from a native batch create operation.
+/// </summary>
+public sealed record GnuCashCreatedTransactionResult(
+    int Index,
+    string Description,
+    string? Number,
+    string? CreatedTransactionGuid,
+    int SplitCount,
+    bool FoundAfterReopen);

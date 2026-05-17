@@ -217,6 +217,26 @@ public sealed class GnuCashClient
         return Map(status);
     }
 
+    internal async Task<GnuCashTransactionBatchCreateResult> CreateTransactionsInCopiedBookAsync(
+        string bookPath,
+        GnuCashTransactionBatchCreateRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(bookPath);
+        ArgumentNullException.ThrowIfNull(request);
+
+        var status = await SendBridgeRequestAsync<GnuCashNativeTransactionBatchWriteStatus>(
+            BridgeRequestKind.ValidateNativeTransactionBatchWrite,
+            new GnuCashNativeTransactionBatchWriteRequest(
+                bookPath,
+                request.Transactions.Select(MapTransactionItem).ToArray(),
+                request.WorkingBookPath,
+                options.InstallPath),
+            cancellationToken).ConfigureAwait(false);
+
+        return Map(status);
+    }
+
     private GnuCashBookRequest CreateBookRequest(string bookPath) =>
         new(bookPath, Map(options.ReadMode), options.InstallPath);
 
@@ -376,6 +396,31 @@ public sealed class GnuCashClient
             status.BackendErrorMessage,
             status.Message);
 
+    private static GnuCashTransactionBatchCreateResult Map(GnuCashNativeTransactionBatchWriteStatus status) =>
+        new(
+            status.IsReady,
+            status.SourceBookPath,
+            status.WorkingBookPath,
+            status.RequestedTransactionCount,
+            status.CreatedTransactionCount,
+            status.SplitCount,
+            status.CreatedTransactions.Select(Map).ToArray(),
+            status.BeforeTransactionCount,
+            status.AfterTransactionCount,
+            status.FoundAfterReopenCount,
+            status.BackendErrorCode,
+            status.BackendErrorMessage,
+            status.Message);
+
+    private static GnuCashCreatedTransactionResult Map(GnuCashNativeCreatedTransactionRecord transaction) =>
+        new(
+            transaction.Index,
+            transaction.Description,
+            transaction.Number,
+            transaction.CreatedTransactionGuid,
+            transaction.SplitCount,
+            transaction.FoundAfterReopen);
+
     private static GnuCashNativeTransactionSplitWriteRequest Map(GnuCashTransactionSplitCreateRequest split) =>
         new(
             split.AccountId,
@@ -383,6 +428,15 @@ public sealed class GnuCashClient
             split.Quantity is null ? null : Map(split.Quantity),
             split.Memo,
             split.Action);
+
+    private static GnuCashNativeTransactionWriteItemRequest MapTransactionItem(GnuCashTransactionCreateRequest transaction) =>
+        new(
+            transaction.Description,
+            transaction.PostedAt,
+            transaction.Splits.Select(Map).ToArray(),
+            transaction.CurrencySpace,
+            transaction.CurrencyId,
+            transaction.Number);
 
     private static GnuCashBookReadBackend Map(GnuCashBookReadMode readMode) =>
         readMode switch

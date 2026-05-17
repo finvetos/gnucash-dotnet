@@ -82,6 +82,7 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ValidateNativeCustomerWrite => Succeeded(request, CreateValidateNativeCustomerWritePayload(request)),
             BridgeRequestKind.ValidateNativeTransactionWrite => Succeeded(request, CreateValidateNativeTransactionWritePayload(request)),
             BridgeRequestKind.ListCustomers => Succeeded(request, CreateListCustomersPayload(request)),
+            BridgeRequestKind.ValidateNativeTransactionBatchWrite => Succeeded(request, CreateValidateNativeTransactionBatchWritePayload(request)),
             BridgeRequestKind.Shutdown => Succeeded(request),
             _ => Failed(
                 request,
@@ -153,6 +154,11 @@ public sealed class BridgeRequestProcessor
     private string CreateValidateNativeTransactionWritePayload(BridgeRequest request) =>
         JsonSerializer.Serialize(
             nativeTransactionWriteValidator.Validate(DeserializeTransactionWriteRequest(request)),
+            BridgeJson.SerializerOptions);
+
+    private string CreateValidateNativeTransactionBatchWritePayload(BridgeRequest request) =>
+        JsonSerializer.Serialize(
+            nativeTransactionWriteValidator.ValidateBatch(DeserializeTransactionBatchWriteRequest(request)),
             BridgeJson.SerializerOptions);
 
     private string CreateOpenBookPayload(BridgeRequest request)
@@ -312,6 +318,19 @@ public sealed class BridgeRequestProcessor
                    request.PayloadJson,
                    BridgeJson.SerializerOptions) ??
                throw new ArgumentException("A valid native transaction write request payload is required.", nameof(request));
+    }
+
+    private static GnuCashNativeTransactionBatchWriteRequest DeserializeTransactionBatchWriteRequest(BridgeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PayloadJson))
+        {
+            throw new ArgumentException("A native transaction batch write request payload is required.", nameof(request));
+        }
+
+        return JsonSerializer.Deserialize<GnuCashNativeTransactionBatchWriteRequest>(
+                   request.PayloadJson,
+                   BridgeJson.SerializerOptions) ??
+               throw new ArgumentException("A valid native transaction batch write request payload is required.", nameof(request));
     }
 
     private sealed record BridgeBookSnapshot(

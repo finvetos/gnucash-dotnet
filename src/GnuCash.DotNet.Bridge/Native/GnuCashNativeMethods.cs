@@ -254,6 +254,11 @@ internal static class GnuCashNativeMethods
         [MarshalAs(UnmanagedType.LPUTF8Str)] string description);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccTransSetNum(
+        IntPtr transaction,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string number);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void xaccTransSetDatePostedSecsNormalized(IntPtr transaction, long seconds);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
@@ -270,6 +275,16 @@ internal static class GnuCashNativeMethods
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern void xaccSplitSetAmount(IntPtr split, GncNumeric amount);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetMemo(
+        IntPtr split,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string memo);
+
+    [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void xaccSplitSetAction(
+        IntPtr split,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string action);
 
     [DllImport(EngineLibrary, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr gncCustomerCreate(IntPtr book);

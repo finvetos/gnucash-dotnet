@@ -46,6 +46,43 @@ public sealed class GnuCashBookTransactionWriteTests
         Assert.Contains("Install GnuCash for Windows first", result.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CreateTransactionsInCopiedBookAsyncMapsNativeBatchWriteStatus()
+    {
+        using var fixture = GnuCashBookFixture.Create();
+        var missingInstallPath = Path.Combine(fixture.DirectoryPath, "missing-install");
+        var workingBookPath = Path.Combine(fixture.DirectoryPath, "transaction-batch-copy.gnucash");
+        Directory.CreateDirectory(missingInstallPath);
+        var client = CreateClient(missingInstallPath);
+
+        var book = await client.OpenBookAsync(fixture.BookPath, TestContext.Current.CancellationToken);
+        var result = await book.CreateTransactionsInCopiedBookAsync(
+            new GnuCashTransactionBatchCreateRequest(
+                [
+                    new GnuCashTransactionCreateRequest(
+                        "Coffee",
+                        new DateTimeOffset(2026, 1, 5, 0, 0, 0, TimeSpan.Zero),
+                        [
+                            new GnuCashTransactionSplitCreateRequest(
+                                "11111111111111111111111111111111",
+                                new GnuCashAmount("-450/100", -450, 100)),
+                            new GnuCashTransactionSplitCreateRequest(
+                                "22222222222222222222222222222222",
+                                new GnuCashAmount("450/100", 450, 100))
+                        ])
+                ],
+                workingBookPath),
+            TestContext.Current.CancellationToken);
+
+        Assert.False(result.IsReady);
+        Assert.Equal(Path.GetFullPath(fixture.BookPath), result.SourceBookPath);
+        Assert.Equal(Path.GetFullPath(workingBookPath), result.WorkingBookPath);
+        Assert.Equal(1, result.RequestedTransactionCount);
+        Assert.Equal(2, result.SplitCount);
+        Assert.Empty(result.CreatedTransactions);
+        Assert.Contains("Install GnuCash for Windows first", result.Message, StringComparison.Ordinal);
+    }
+
     private static GnuCashClient CreateClient(string installPath) =>
         new(
             NullLogger<GnuCashClient>.Instance,
