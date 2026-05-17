@@ -25,6 +25,14 @@ public sealed class CapabilityCoverageTests
         "not-assessed"
     ];
 
+    private static readonly string[] RequiredCoverageDimensions =
+    [
+        "sdk-supported",
+        "write-supported",
+        "bridge-supported",
+        "read-only"
+    ];
+
     [Fact]
     public void CapabilityCoverageMatrixShouldBeWellFormed()
     {
@@ -103,6 +111,63 @@ public sealed class CapabilityCoverageTests
         }
     }
 
+    [Fact]
+    public void CapabilityCoverageDimensionsShouldUseKnownCapabilityIds()
+    {
+        var coverage = ReadCoverage();
+        var dimensions = ReadCoverageDimensions();
+        var capabilityIds = coverage.Capabilities
+            .Select(capability => capability.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        dimensions.Version.Should().Be(2);
+        dimensions.TargetThreshold.Should().BeGreaterThanOrEqualTo(0.8);
+        dimensions.Dimensions.Select(dimension => dimension.Name)
+            .Should().BeEquivalentTo(RequiredCoverageDimensions);
+
+        foreach (var dimension in dimensions.Dimensions)
+        {
+            dimension.TargetCapabilities.Should().OnlyHaveUniqueItems(
+                $"{dimension.Name} target ids should remain stable");
+            dimension.CoveredCapabilities.Should().OnlyHaveUniqueItems(
+                $"{dimension.Name} covered ids should remain stable");
+            dimension.TargetCapabilities.Should().OnlyContain(
+                capabilityId => capabilityIds.Contains(capabilityId),
+                $"{dimension.Name} targets should reference known capability ids");
+            dimension.CoveredCapabilities.Should().OnlyContain(
+                capabilityId => capabilityIds.Contains(capabilityId),
+                $"{dimension.Name} covered ids should reference known capability ids");
+            dimension.CoveredCapabilities.Should().BeSubsetOf(
+                dimension.TargetCapabilities,
+                $"{dimension.Name} coverage must be measured against the declared target set");
+        }
+    }
+
+    [Fact]
+    public void OverallNonUiCapabilityCoverageShouldMeetReleaseThreshold()
+    {
+        var coverage = ReadCoverage();
+        var dimensions = ReadCoverageDimensions();
+        var supportedStatuses = new[]
+        {
+            "sdk-supported",
+            "bridge-supported",
+            "read-only",
+            "write-supported",
+            "import-export"
+        };
+        var nonUiCapabilities = coverage.Capabilities
+            .Where(capability => capability.Status != "excluded-ui")
+            .ToArray();
+        var supported = nonUiCapabilities
+            .Count(capability => supportedStatuses.Contains(capability.Status));
+        var ratio = supported / (double)nonUiCapabilities.Length;
+
+        ratio.Should().BeGreaterThanOrEqualTo(
+            dimensions.TargetThreshold,
+            "overall non-UI GnuCash capability coverage should not use a scoped denominator");
+    }
+
     private static CapabilityCoverageDocument ReadCoverage()
     {
         var path = Path.Combine(
@@ -113,6 +178,18 @@ public sealed class CapabilityCoverageTests
         var json = File.ReadAllText(path);
         return JsonSerializer.Deserialize<CapabilityCoverageDocument>(json, JsonOptions) ??
                throw new InvalidOperationException("Capability coverage JSON could not be parsed.");
+    }
+
+    private static CapabilityCoverageDimensionsDocument ReadCoverageDimensions()
+    {
+        var path = Path.Combine(
+            FindRepoRoot(),
+            "gnucash-dotnet-docs",
+            "capabilities",
+            "capability-coverage-dimensions.json");
+        var json = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<CapabilityCoverageDimensionsDocument>(json, JsonOptions) ??
+               throw new InvalidOperationException("Capability coverage dimensions JSON could not be parsed.");
     }
 
     private static string FindRepoRoot()
@@ -148,4 +225,16 @@ public sealed class CapabilityCoverageTests
         string Surface,
         string Evidence,
         string Verification);
+
+    private sealed record CapabilityCoverageDimensionsDocument(
+        int Version,
+        string Updated,
+        double TargetThreshold,
+        IReadOnlyList<CapabilityCoverageDimension> Dimensions);
+
+    private sealed record CapabilityCoverageDimension(
+        string Name,
+        string Description,
+        IReadOnlyList<string> TargetCapabilities,
+        IReadOnlyList<string> CoveredCapabilities);
 }

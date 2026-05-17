@@ -20,6 +20,19 @@ public sealed partial class GnuCashBook
                MatchesExact(account.CommodityId, query.CommodityId);
     }
 
+    private static bool Matches(GnuCashCommodity commodity, GnuCashCommodityQuery? query)
+    {
+        if (query is null)
+        {
+            return true;
+        }
+
+        return MatchesExact(commodity.Space, query.Space) &&
+               MatchesExact(commodity.Id, query.Id) &&
+               Contains(commodity.Name, query.NameContains) &&
+               MatchesExact(commodity.XCode, query.XCode);
+    }
+
     private static bool Matches(GnuCashTransaction transaction, GnuCashTransactionQuery? query)
     {
         if (query is null)
@@ -148,6 +161,11 @@ public sealed partial class GnuCashBook
         var numerator = checked(-amount.Numerator.Value);
         return new GnuCashAmount($"{numerator}/{amount.Denominator}", numerator, amount.Denominator);
     }
+
+    private static GnuCashAmount Absolute(GnuCashAmount amount) =>
+        amount.Numerator is < 0 ? Negate(amount) : amount;
+
+    private static GnuCashAmount ZeroAmount() => new("0/1", 0, 1);
 
     private static bool IsZero(GnuCashAmount amount) =>
         amount.Numerator == 0 &&

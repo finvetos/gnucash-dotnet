@@ -63,4 +63,30 @@ public sealed partial class GnuCashBook
     public Task<IReadOnlyList<GnuCashPrice>> ListLatestPricesAsync(
         CancellationToken cancellationToken) =>
         ListLatestPricesAsync(null, cancellationToken);
+
+    /// <summary>
+    /// Finds the latest price for one commodity and currency pair.
+    /// </summary>
+    public async Task<GnuCashPrice?> GetLatestPriceAsync(
+        string commoditySpace,
+        string commodityId,
+        string currencySpace,
+        string currencyId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(commoditySpace);
+        ArgumentException.ThrowIfNullOrWhiteSpace(commodityId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currencySpace);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currencyId);
+
+        var prices = await ListLatestPricesAsync(
+            new GnuCashPriceQuery(
+                CommoditySpace: commoditySpace,
+                CommodityId: commodityId,
+                CurrencySpace: currencySpace,
+                CurrencyId: currencyId),
+            cancellationToken).ConfigureAwait(false);
+
+        return prices.SingleOrDefault();
+    }
 }

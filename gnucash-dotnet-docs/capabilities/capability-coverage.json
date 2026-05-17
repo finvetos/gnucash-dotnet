@@ -35,19 +35,19 @@
       "id": "install.validate-native-api",
       "domain": "Installation",
       "name": "Validate required native exports",
-      "status": "bridge-supported",
-      "surface": "validate-api CLI; BridgeRequestKind.ValidateNativeApi",
-      "evidence": "GnuCashNativeApiProbe; CliApplicationTests",
-      "verification": "Local win-x86 smoke against GnuCash 5.13"
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.ValidateNativeApiAsync; validate-api CLI; BridgeRequestKind.ValidateNativeApi",
+      "evidence": "GnuCashClientNativeDiagnosticsTests; GnuCashNativeApiProbe; CliApplicationTests",
+      "verification": "SDK bridge regression test and local win-x86 smoke against GnuCash 5.13"
     },
     {
       "id": "install.export-inventory",
       "domain": "Installation",
       "name": "Inventory stock installer exports",
-      "status": "bridge-supported",
-      "surface": "inventory-exports CLI; BridgeRequestKind.InventoryNativeExports",
-      "evidence": "CliNativeExportInventoryTests",
-      "verification": "Bridge CLI and headless regression tests"
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.InventoryNativeExportsAsync; inventory-exports CLI; BridgeRequestKind.InventoryNativeExports",
+      "evidence": "GnuCashClientNativeDiagnosticsTests; CliNativeExportInventoryTests",
+      "verification": "SDK bridge, CLI, and headless regression tests"
     },
     {
       "id": "native.smoke-automation",
@@ -71,45 +71,45 @@
       "id": "book.native-read",
       "domain": "Book",
       "name": "Read core book data through native engine",
-      "status": "bridge-supported",
-      "surface": "GnuCashBookReadMode.Native; GnuCashNativeBookReader; BridgeRequestKind.ValidateNativeSession; BridgeRequestKind.ValidateNativeReadParity; BridgeRequestKind.ValidateNativeWriteRoundTrip",
-      "evidence": "M10 native read routing",
-      "verification": "Native smoke against stock GnuCash 5.13"
+      "status": "sdk-supported",
+      "surface": "GnuCashBookReadMode.Native; GnuCashClient.ValidateNativeSessionAsync; GnuCashClient.ValidateNativeReadParityAsync; GnuCashClient.ValidateNativeWriteRoundTripAsync; BridgeRequestKind.ValidateNativeSession; BridgeRequestKind.ValidateNativeReadParity; BridgeRequestKind.ValidateNativeWriteRoundTrip",
+      "evidence": "GnuCashClientNativeDiagnosticsTests; M10 native read routing",
+      "verification": "SDK diagnostics regression tests and native smoke against stock GnuCash 5.13"
     },
     {
       "id": "book.create",
       "domain": "Book",
       "name": "Create new book",
-      "status": "deferred",
-      "surface": "Planned book lifecycle API",
-      "evidence": "M11 and M12 scope",
-      "verification": ""
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.CreateBookAsync",
+      "evidence": "GnuCashBookLifecycleAndWriteTests.CreateBookAsyncCreatesOpenableXmlBook",
+      "verification": "SDK create/open regression test"
     },
     {
       "id": "book.backup-restore",
       "domain": "Book",
       "name": "Backup and restore book",
-      "status": "deferred",
-      "surface": "Planned source-write safety API",
-      "evidence": "M11 safer source-book writes",
-      "verification": ""
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.BackupBookAsync; GnuCashClient.RestoreBookBackupAsync",
+      "evidence": "GnuCashClientBookFileTests.BackupAndRestoreBookCopiesBytesWithoutChangingSource",
+      "verification": "SDK file safety regression test"
     },
     {
       "id": "book.backend-classification",
       "domain": "Book",
       "name": "Detect and classify backend type",
-      "status": "read-only",
-      "surface": "GnuCashBookInfo.FileFormat",
-      "evidence": "GnuCashBookReader and native reader summaries",
-      "verification": "Book open regression tests"
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.ClassifyBookBackend; GnuCashBookInfo.FileFormat",
+      "evidence": "GnuCashClientBookFileTests.ClassifyBookBackendDetectsXmlCompressedXmlAndSqlite",
+      "verification": "SDK backend classification regression test"
     },
     {
       "id": "accounts.list-query",
       "domain": "Accounts",
       "name": "List and query accounts",
       "status": "sdk-supported",
-      "surface": "GnuCashBook.ListAccountsAsync; GetAccountByIdAsync; BridgeRequestKind.ListAccounts",
-      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions",
+      "surface": "GnuCashBook.ListAccountsAsync; GetAccountByIdAsync; ListAccountPathsAsync; GetAccountPathAsync; BridgeRequestKind.ListAccounts",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions; GnuCashBookCoverageExpansionTests",
       "verification": "SDK regression test"
     },
     {
@@ -125,18 +125,18 @@
       "id": "accounts.write",
       "domain": "Accounts",
       "name": "Create and update accounts",
-      "status": "deferred",
-      "surface": "Planned book lifecycle API",
-      "evidence": "M11 book lifecycle scope",
-      "verification": ""
+      "status": "write-supported",
+      "surface": "GnuCashBook.CreateAccountInCopiedBookAsync",
+      "evidence": "GnuCashBookLifecycleAndWriteTests.CopiedXmlWriteApisCreateAccountsPricesAndReconciliationUpdates",
+      "verification": "Copied XML book write and reopen regression test"
     },
     {
       "id": "commodities.list",
       "domain": "Commodities",
       "name": "List currencies and securities",
       "status": "sdk-supported",
-      "surface": "GnuCashBook.ListCommoditiesAsync; ListSecuritiesAsync; BridgeRequestKind.ListCommodities",
-      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices",
+      "surface": "GnuCashBook.ListCommoditiesAsync; ListCommoditiesAsync(GnuCashCommodityQuery); ListCurrenciesAsync; GetCommodityAsync; ListSecuritiesAsync; BridgeRequestKind.ListCommodities",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices; GnuCashBookCoverageExpansionTests",
       "verification": "SDK regression test"
     },
     {
@@ -144,26 +144,26 @@
       "domain": "Prices",
       "name": "Read and query price database",
       "status": "sdk-supported",
-      "surface": "GnuCashBook.ListPricesAsync; ListLatestPricesAsync; BridgeRequestKind.ListPrices",
-      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices",
+      "surface": "GnuCashBook.ListPricesAsync; ListLatestPricesAsync; GetLatestPriceAsync; BridgeRequestKind.ListPrices",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanListSecuritiesAndPrices; GnuCashBookCoverageExpansionTests",
       "verification": "SDK regression test"
     },
     {
       "id": "prices.write",
       "domain": "Prices",
       "name": "Write prices",
-      "status": "deferred",
-      "surface": "Planned investment and currency API",
-      "evidence": "M11 investment writes",
-      "verification": ""
+      "status": "write-supported",
+      "surface": "GnuCashBook.CreatePriceInCopiedBookAsync",
+      "evidence": "GnuCashBookLifecycleAndWriteTests.CopiedXmlWriteApisCreateAccountsPricesAndReconciliationUpdates",
+      "verification": "Copied XML book write and reopen regression test"
     },
     {
       "id": "transactions.list-query",
       "domain": "Transactions",
       "name": "List and query transactions and splits",
       "status": "sdk-supported",
-      "surface": "GnuCashBook.ListTransactionsAsync; BridgeRequestKind.ListTransactions",
-      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions",
+      "surface": "GnuCashBook.ListTransactionsAsync; GetTransactionByIdAsync; ListSplitsAsync; GetSplitByIdAsync; BridgeRequestKind.ListTransactions",
+      "evidence": "GnuCashClientTests.OpenBookAsyncCanFilterAccountsAndTransactions; GnuCashBookCoverageExpansionTests",
       "verification": "SDK regression test"
     },
     {
@@ -197,10 +197,10 @@
       "id": "transactions.lots",
       "domain": "Transactions",
       "name": "Lots and cost basis",
-      "status": "not-assessed",
-      "surface": "Native research required",
-      "evidence": "M11 investment writes",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListLotsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML lot read regression test"
     },
     {
       "id": "reconciliation.read",
@@ -215,10 +215,10 @@
       "id": "reconciliation.write",
       "domain": "Reconciliation",
       "name": "Mark splits cleared or reconciled",
-      "status": "deferred",
-      "surface": "Planned copied-book native validator",
-      "evidence": "M11 reconciliation write",
-      "verification": ""
+      "status": "write-supported",
+      "surface": "GnuCashBook.MarkSplitsReconciledInCopiedBookAsync",
+      "evidence": "GnuCashBookLifecycleAndWriteTests.CopiedXmlWriteApisCreateAccountsPricesAndReconciliationUpdates",
+      "verification": "Copied XML book write and reopen regression test"
     },
     {
       "id": "imports.csv-preview",
@@ -251,28 +251,28 @@
       "id": "imports.ofx-qfx",
       "domain": "Imports",
       "name": "OFX/QFX preview and apply",
-      "status": "deferred",
-      "surface": "Planned import format expansion",
-      "evidence": "M11 import formats",
-      "verification": ""
+      "status": "import-export",
+      "surface": "GnuCashBook.PreviewOfxStatementImportAsync",
+      "evidence": "GnuCashBookImportFormatTests.CanPreviewOfxAndQifStatementImports",
+      "verification": "SDK OFX/QFX preview regression test"
     },
     {
       "id": "imports.qif",
       "domain": "Imports",
       "name": "QIF preview and apply",
-      "status": "deferred",
-      "surface": "Planned import format expansion",
-      "evidence": "M11 import formats",
-      "verification": ""
+      "status": "import-export",
+      "surface": "GnuCashBook.PreviewQifStatementImportAsync",
+      "evidence": "GnuCashBookImportFormatTests.CanPreviewOfxAndQifStatementImports",
+      "verification": "SDK QIF preview regression test"
     },
     {
       "id": "imports.csv-prices",
       "domain": "Imports",
       "name": "CSV price import",
-      "status": "deferred",
-      "surface": "Planned import format expansion",
-      "evidence": "M11 import formats",
-      "verification": ""
+      "status": "write-supported",
+      "surface": "PreviewCsvPriceImportAsync; ApplyCsvPriceImportToCopiedBookAsync",
+      "evidence": "GnuCashBookImportFormatTests.CanPreviewAndApplyCsvPriceImportsToCopiedBook",
+      "verification": "Copied XML book write and reopen regression test"
     },
     {
       "id": "reports.account-summary",
@@ -297,18 +297,18 @@
       "domain": "Reports",
       "name": "Trial balance, income statement, balance sheet, cash flow",
       "status": "sdk-supported",
-      "surface": "Structured report APIs",
-      "evidence": "M3 structured reports",
-      "verification": "Report regression tests"
+      "surface": "CreateTrialBalanceReportAsync; CreateIncomeStatementReportAsync; CreateBalanceSheetReportAsync; CreateCashFlowReportAsync",
+      "evidence": "GnuCashBookCoverageExpansionTests.OpenBookAsyncCanCreateFinancialAndPortfolioReports",
+      "verification": "SDK financial report regression test"
     },
     {
       "id": "reports.portfolio",
       "domain": "Reports",
       "name": "Portfolio and security valuation reports",
-      "status": "deferred",
-      "surface": "Planned reporting expansion",
-      "evidence": "M11 reporting expansion",
-      "verification": ""
+      "status": "sdk-supported",
+      "surface": "CreatePortfolioValuationReportAsync",
+      "evidence": "GnuCashBookCoverageExpansionTests.OpenBookAsyncCanCreateFinancialAndPortfolioReports",
+      "verification": "SDK portfolio report regression test"
     },
     {
       "id": "business.customers",
@@ -323,28 +323,28 @@
       "id": "business.vendors",
       "domain": "Business",
       "name": "Vendors",
-      "status": "deferred",
-      "surface": "Planned native read/list and write validators",
-      "evidence": "M11 business reads",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListVendorsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML vendor read regression test"
     },
     {
       "id": "business.invoices-bills",
       "domain": "Business",
       "name": "Invoices, bills, entries, posting, payments",
-      "status": "deferred",
-      "surface": "Planned native workflow validators",
-      "evidence": "M11 full business workflow",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListBusinessDocumentsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML invoice/bill read regression test"
     },
     {
       "id": "business.terms-tax",
       "domain": "Business",
       "name": "Terms and tax tables",
-      "status": "deferred",
-      "surface": "Planned native read/list and write validators",
-      "evidence": "M11 full business workflow",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListBillTermsAsync; GnuCashBook.ListTaxTablesAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML terms and tax table read regression test"
     },
     {
       "id": "investments.securities-read",
@@ -368,19 +368,19 @@
       "id": "currency.multi-currency",
       "domain": "Currency",
       "name": "Multi-currency transactions and valuation",
-      "status": "deferred",
-      "surface": "Planned multi-currency workflows",
-      "evidence": "M11 multi-currency workflows",
-      "verification": ""
+      "status": "sdk-supported",
+      "surface": "CreateMultiCurrencyBalanceReportAsync; ListPricesAsync; GetLatestPriceAsync",
+      "evidence": "GnuCashBookCoverageExpansionTests.OpenBookAsyncCanCreateFinancialAndPortfolioReports",
+      "verification": "SDK multi-currency balance and price regression test"
     },
     {
       "id": "backends.xml",
       "domain": "Backends",
       "name": "XML and compressed XML books",
-      "status": "read-only",
-      "surface": "GnuCashBookReader",
-      "evidence": "Bridge XML reader tests",
-      "verification": "Bridge regression tests"
+      "status": "sdk-supported",
+      "surface": "GnuCashClient.OpenBookAsync; GnuCashClient.ClassifyBookBackend; GnuCashBookReader",
+      "evidence": "GnuCashClientTests; GnuCashClientBookFileTests",
+      "verification": "SDK and bridge XML reader regression tests"
     },
     {
       "id": "backends.sqlite",
@@ -404,28 +404,28 @@
       "id": "scheduled.transactions",
       "domain": "Scheduled",
       "name": "Scheduled transactions",
-      "status": "not-assessed",
-      "surface": "Native research required",
-      "evidence": "M12 capability atlas",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListScheduledTransactionsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML scheduled transaction read regression test"
     },
     {
       "id": "budgets.read-write",
       "domain": "Budgets",
       "name": "Budgets",
-      "status": "not-assessed",
-      "surface": "Native research required",
-      "evidence": "M12 capability atlas",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListBudgetsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML budget read regression test"
     },
     {
       "id": "slots.metadata",
       "domain": "Metadata",
       "name": "Slots, notes, and custom metadata",
-      "status": "not-assessed",
-      "surface": "Native research required",
-      "evidence": "M12 capability atlas",
-      "verification": ""
+      "status": "read-only",
+      "surface": "GnuCashBook.ListSlotsAsync",
+      "evidence": "GnuCashBookExtendedReadTests.CanReadExtendedXmlCapabilityAreas",
+      "verification": "SDK XML slot metadata read regression test"
     },
     {
       "id": "preferences.gui",

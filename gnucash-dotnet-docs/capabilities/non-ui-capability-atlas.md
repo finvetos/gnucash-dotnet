@@ -2,7 +2,7 @@
 
 This atlas is the working control surface for maximum GnuCash engine coverage. It excludes desktop-window behavior and GUI-only workflows, but it does not hide them; excluded areas should still be classified so the project can explain its boundaries.
 
-Machine-readable status lives in [capability-coverage.json](capability-coverage.json). Update both files when a capability meaningfully changes.
+Machine-readable status lives in [capability-coverage.json](capability-coverage.json). Release coverage gates live in [capability-coverage-dimensions.json](capability-coverage-dimensions.json). Update both files when a capability meaningfully changes.
 
 ## Coverage Statuses
 
@@ -32,8 +32,8 @@ Machine-readable status lives in [capability-coverage.json](capability-coverage.
 | Reports | Structured account/transaction/trial/income/balance/cash-flow reports. | Portfolio, multi-currency, JSON/CSV exports, and stable renderer decisions. |
 | Business objects | Customer create/list foundation. | Vendors, employees, jobs, invoices, bills, entries, posting, payments, terms, tax tables. |
 | Investments and currency | Securities and prices are readable. | Buy/sell, dividends, splits, price writes, currency conversions, gain/loss classification. |
-| Scheduled and budgets | Not yet assessed. | Read/write where native APIs are stable; otherwise classify. |
-| Slots, metadata, preferences | Not yet assessed. | Typed slot access for safe domains and explicit exclusions for GUI preferences. |
+| Scheduled and budgets | XML read support exists. | Write where native APIs are stable; otherwise classify. |
+| Slots, metadata, preferences | Slot metadata read support exists; GUI preferences are excluded. | Typed slot mutation for safe domains and explicit exclusions for GUI preferences. |
 
 ## Coverage Rules
 
@@ -43,6 +43,7 @@ Machine-readable status lives in [capability-coverage.json](capability-coverage.
 - Every `sdk-supported` or `bridge-supported` entry must name the API, protocol command, CLI command, test, or doc evidence.
 - Every `not-viable-with-stock-install` entry must name the blocking runtime fact.
 - Every `excluded-ui` entry must explain why it belongs to UI behavior instead of engine workflows.
+- Overall coverage is measured against all tracked non-UI capabilities. SDK, write, bridge, and read-only ratios are also reported because a capability can belong to more than one dimension, but they must not replace the full denominator.
 
 ## Release Use
 

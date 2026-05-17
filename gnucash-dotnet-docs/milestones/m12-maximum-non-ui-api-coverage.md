@@ -162,3 +162,57 @@ Verification:
 - `.\tools\sentrux\sentrux.exe gate .` passed.
 - `.\tools\native-smoke.ps1` passed install validation, native API validation, and export inventory against stock GnuCash 5.13.
 - Local export inventory found 21,443 exports across `libgnc-engine.dll`, `libgnc-module.dll`, and `libgnc-core-utils.dll`.
+
+### 2026-05-17 - SDK Coverage Gate Lift
+
+Implemented:
+
+- Lifted native API validation, export inventory, native session validation, native read parity, and native write round-trip validation into public SDK methods.
+- Added SDK book-file safety APIs for backend classification, backup, and restore.
+- Added account path, commodity query, currency list, transaction lookup, split lookup, and latest-price SDK helpers.
+- Added SDK financial reports for trial balance, balance sheet, income statement, cash flow, multi-currency balances, and portfolio valuation.
+- Added `capability-coverage-dimensions.json` and an architecture gate for the full non-UI denominator.
+
+Notes:
+
+- The first dimensional gate used a release-scoped denominator; that was corrected because it overstated true GnuCash coverage.
+- The release gate now enforces 80% overall coverage across all tracked non-UI capabilities, while SDK/write/bridge/read-only ratios remain visible as separate diagnostics.
+- Deferred/not-assessed GnuCash domains remain visible in the main matrix; they are not claimed as covered until implementation and evidence exist.
+
+Verification:
+
+- `dotnet build .\GnuCash.DotNet.slnx --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -p:UseSharedCompilation=false -v:minimal` passed.
+- `dotnet test .\GnuCash.DotNet.slnx --no-build --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -v:minimal` passed with 84 tests.
+- `.\tools\sentrux\sentrux.exe check . --include-untracked` passed.
+- `.\tools\sentrux\sentrux.exe gate .` passed.
+
+### 2026-05-17 - Full Denominator Coverage Lift
+
+Implemented:
+
+- Added XML book creation through `GnuCashClient.CreateBookAsync`.
+- Added copied XML book write APIs for account creation, price creation, and split reconciliation state changes.
+- Added OFX/QFX and QIF statement previews.
+- Added CSV price preview and copied-book apply.
+- Added XML read APIs for lots, vendors, invoices/bills, bill terms, tax tables, scheduled transactions, budgets, and slots/custom metadata.
+- Updated coverage tracking to 42/46 supported non-UI capabilities, or 91.3% overall.
+
+Coverage:
+
+- Overall non-UI supported: 42/46 = 91.3%.
+- SDK dimension: 41/46 = 89.1%.
+- Read-only dimension: 32/35 = 91.4%.
+- Bridge dimension: 19/35 = 54.3%.
+- Write dimension: 10/23 = 43.5%.
+
+Notes:
+
+- Bridge and write dimensions remain below 80%; they are not claimed as complete.
+- Remaining lower-coverage areas are source-book writes, database backends, investment workflow mutations, and deeper native business workflow writes.
+
+Verification:
+
+- `dotnet build .\GnuCash.DotNet.slnx --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -p:UseSharedCompilation=false -v:minimal` passed.
+- `dotnet test .\GnuCash.DotNet.slnx --no-build --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -v:minimal` passed with 90 tests.
+- `.\tools\sentrux\sentrux.exe check . --include-untracked` passed.
+- `.\tools\sentrux\sentrux.exe gate .` passed.

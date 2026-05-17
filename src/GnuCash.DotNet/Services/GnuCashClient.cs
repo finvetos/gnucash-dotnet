@@ -11,7 +11,7 @@ namespace GnuCash.DotNet.Services;
 /// <summary>
 /// Entry point for applications using the GnuCash .NET SDK.
 /// </summary>
-public sealed class GnuCashClient
+public sealed partial class GnuCashClient
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
