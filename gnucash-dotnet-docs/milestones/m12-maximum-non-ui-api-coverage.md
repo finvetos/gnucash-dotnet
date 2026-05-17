@@ -136,3 +136,29 @@ Next:
 
 - Add the stock installer export inventory command or script.
 - Add real native writable fixtures so write smoke tests no longer depend on hand-authored XML.
+
+### 2026-05-17 - Export Inventory And Native Smoke Scaffold
+
+Implemented:
+
+- Added `inventory-exports` as a human CLI command.
+- Added `BridgeRequestKind.InventoryNativeExports` for headless automation.
+- Added native export inventory DTOs and bridge implementation.
+- Added regression coverage for CLI JSON/plain output and headless protocol.
+- Added `tools/native-smoke.ps1` for local stock-installer smoke runs.
+- Added native fixture guidance under `operations/native-smoke-fixtures.md`.
+- Added matrix coverage entries for export inventory and native smoke automation.
+
+Notes:
+
+- `inventory-exports` inventories the three core runtime libraries by default and can inspect all direct `bin` DLLs with `--all-bin-dlls`.
+- Native write smoke still needs a real GnuCash-created disposable book passed with `-BookPath` until a book-lifecycle command can create one through the engine.
+
+Verification:
+
+- `dotnet build .\GnuCash.DotNet.slnx --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -p:UseSharedCompilation=false -v:minimal` passed.
+- `dotnet test .\GnuCash.DotNet.slnx --no-build --configuration Debug -p:HeurexUseGitVersion=false -m:1 -nr:false -v:minimal` passed with 77 tests.
+- `.\tools\sentrux\sentrux.exe check . --include-untracked` passed.
+- `.\tools\sentrux\sentrux.exe gate .` passed.
+- `.\tools\native-smoke.ps1` passed install validation, native API validation, and export inventory against stock GnuCash 5.13.
+- Local export inventory found 21,443 exports across `libgnc-engine.dll`, `libgnc-module.dll`, and `libgnc-core-utils.dll`.

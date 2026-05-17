@@ -87,6 +87,7 @@ public sealed class CliApplication
         root.Subcommands.Add(BuildPingCommand(renderer));
         root.Subcommands.Add(BuildValidateCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeApiCommand(renderer));
+        root.Subcommands.Add(BuildInventoryExportsCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeSessionCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeReadParityCommand(renderer));
         root.Subcommands.Add(BuildValidateNativeWriteRoundTripCommand(renderer));
@@ -182,6 +183,32 @@ public sealed class CliApplication
             var installPath = parseResult.GetValue(installPathOption);
             var status = new GnuCashNativeApiProbe().Validate(installPath);
             renderer.WriteNativeApiValidation(status);
+            return status.IsReady ? 0 : 1;
+        });
+
+        return command;
+    }
+
+    private static Command BuildInventoryExportsCommand(ICliRenderer renderer)
+    {
+        var installPathOption = new Option<string?>("--install-path")
+        {
+            Description = "Inspect a specific GnuCash installation path."
+        };
+        var allBinDllsOption = new Option<bool>("--all-bin-dlls")
+        {
+            Description = "Inventory every DLL directly under the GnuCash bin directory."
+        };
+        var command = new Command("inventory-exports", "Inventory native exports from the GnuCash install.");
+        AddOutputOptions(command);
+        command.Options.Add(installPathOption);
+        command.Options.Add(allBinDllsOption);
+        command.SetAction(parseResult =>
+        {
+            var status = new GnuCashNativeExportInventory().Inspect(
+                parseResult.GetValue(installPathOption),
+                parseResult.GetValue(allBinDllsOption));
+            renderer.WriteNativeExportInventory(status);
             return status.IsReady ? 0 : 1;
         });
 

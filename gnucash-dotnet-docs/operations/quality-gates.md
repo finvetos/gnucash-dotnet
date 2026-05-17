@@ -30,3 +30,5 @@ The architecture test suite also validates `gnucash-dotnet-docs/capabilities/cap
 The release workflow builds Sentrux, then runs `tools/release.ps1`. That script runs restore, build, `dotnet test` with the ArchUnitNET suites, and `tools/check.ps1 -RequireSentrux` before packages or release artifacts are produced.
 
 Release CI also runs `tools/package-smoke.ps1`, a minimal regression test that consumes the produced NuGet package from a temporary console app and verifies the packaged bridge can be started by the SDK.
+
+Local native coverage smoke lives at `tools/native-smoke.ps1`. It is optional for normal CI because GnuCash is not expected to be installed on hosted runners, but it should be run before claiming new native write coverage. Pass `-BookPath` with a real GnuCash-created disposable book to include read/write round-trip checks.

@@ -124,6 +124,39 @@ public sealed class PlainCliRenderer : ICliRenderer
         WriteList("Missing native exports", status.MissingExports);
     }
 
+    public void WriteNativeExportInventory(GnuCashNativeExportInventoryStatus status)
+    {
+        if (json)
+        {
+            WriteJson(status);
+            return;
+        }
+
+        WriteLogo();
+        writer.WriteLine("GnuCash native export inventory");
+        writer.WriteLine("-------------------------------");
+        writer.WriteLine($"Status:    {(status.IsReady ? "Ready" : "Not ready")}");
+        writer.WriteLine($"Libraries: {status.LibraryCount}");
+        writer.WriteLine($"Exports:   {status.TotalExportCount}");
+        WriteOptional("Path", status.InstallPath);
+        WriteOptional("Version", status.DisplayVersion);
+        writer.WriteLine();
+        writer.WriteLine(status.Message);
+
+        foreach (var library in status.Libraries)
+        {
+            writer.WriteLine();
+            writer.WriteLine($"{library.Name}: {(library.IsReady ? "Ready" : "Not ready")} ({library.ExportCount} exports)");
+            WriteOptional("Path", library.Path);
+            WriteOptional("Error", library.ErrorMessage);
+            WriteList("Sample exports", library.Exports.Take(20).ToArray());
+            if (library.Exports.Count > 20)
+            {
+                writer.WriteLine($"  ... {library.Exports.Count - 20} more exports; use --json for the full inventory.");
+            }
+        }
+    }
+
     public void WriteNativeSessionValidation(GnuCashNativeSessionStatus status)
     {
         if (json)

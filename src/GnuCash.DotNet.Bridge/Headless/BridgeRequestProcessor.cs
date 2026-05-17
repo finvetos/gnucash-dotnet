@@ -20,6 +20,7 @@ public sealed class BridgeRequestProcessor
     private readonly GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator;
     private readonly GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator;
     private readonly GnuCashNativeTransactionWriteValidator nativeTransactionWriteValidator;
+    private readonly GnuCashNativeExportInventory nativeExportInventory;
     private readonly GnuCashNativeBookReader nativeBookReader;
     private readonly GnuCashNativeCustomerReader nativeCustomerReader;
 
@@ -33,6 +34,7 @@ public sealed class BridgeRequestProcessor
             new GnuCashNativeWriteRoundTripValidator(),
             new GnuCashNativeCustomerWriteValidator(),
             new GnuCashNativeTransactionWriteValidator(),
+            new GnuCashNativeExportInventory(),
             new GnuCashNativeBookReader(),
             new GnuCashNativeCustomerReader())
     {
@@ -47,6 +49,7 @@ public sealed class BridgeRequestProcessor
         GnuCashNativeWriteRoundTripValidator nativeWriteRoundTripValidator,
         GnuCashNativeCustomerWriteValidator nativeCustomerWriteValidator,
         GnuCashNativeTransactionWriteValidator nativeTransactionWriteValidator,
+        GnuCashNativeExportInventory nativeExportInventory,
         GnuCashNativeBookReader nativeBookReader,
         GnuCashNativeCustomerReader nativeCustomerReader)
     {
@@ -58,6 +61,7 @@ public sealed class BridgeRequestProcessor
         this.nativeWriteRoundTripValidator = nativeWriteRoundTripValidator;
         this.nativeCustomerWriteValidator = nativeCustomerWriteValidator;
         this.nativeTransactionWriteValidator = nativeTransactionWriteValidator;
+        this.nativeExportInventory = nativeExportInventory;
         this.nativeBookReader = nativeBookReader;
         this.nativeCustomerReader = nativeCustomerReader;
     }
@@ -76,6 +80,7 @@ public sealed class BridgeRequestProcessor
             BridgeRequestKind.ListTransactions => Succeeded(request, CreateListTransactionsPayload(request)),
             BridgeRequestKind.ListPrices => Succeeded(request, CreateListPricesPayload(request)),
             BridgeRequestKind.ValidateNativeApi => Succeeded(request, CreateValidateNativeApiPayload(request)),
+            BridgeRequestKind.InventoryNativeExports => Succeeded(request, CreateInventoryNativeExportsPayload(request)),
             BridgeRequestKind.ValidateNativeSession => Succeeded(request, CreateValidateNativeSessionPayload(request)),
             BridgeRequestKind.ValidateNativeReadParity => Succeeded(request, CreateValidateNativeReadParityPayload(request)),
             BridgeRequestKind.ValidateNativeWriteRoundTrip => Succeeded(request, CreateValidateNativeWriteRoundTripPayload(request)),
@@ -117,6 +122,11 @@ public sealed class BridgeRequestProcessor
     private string CreateValidateNativeApiPayload(BridgeRequest request) =>
         JsonSerializer.Serialize(
             nativeApiProbe.Validate(DeserializeLocateRequest(request).InstallPath),
+            BridgeJson.SerializerOptions);
+
+    private string CreateInventoryNativeExportsPayload(BridgeRequest request) =>
+        JsonSerializer.Serialize(
+            nativeExportInventory.Inspect(DeserializeLocateRequest(request).InstallPath),
             BridgeJson.SerializerOptions);
 
     private string CreateValidateNativeSessionPayload(BridgeRequest request)

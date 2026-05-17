@@ -67,6 +67,7 @@ public sealed class BridgeContractsTests
         Assert.Equal(13, (int)BridgeRequestKind.ValidateNativeTransactionWrite);
         Assert.Equal(14, (int)BridgeRequestKind.ListCustomers);
         Assert.Equal(15, (int)BridgeRequestKind.ValidateNativeTransactionBatchWrite);
+        Assert.Equal(16, (int)BridgeRequestKind.InventoryNativeExports);
         Assert.Equal(0, (int)GnuCashBookReadBackend.Xml);
         Assert.Equal(1, (int)GnuCashBookReadBackend.Native);
         Assert.Equal(2, (int)GnuCashBookReadBackend.NativeThenXml);

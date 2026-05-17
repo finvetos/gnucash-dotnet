@@ -24,6 +24,7 @@ public sealed class CliApplicationTests
         Assert.Contains("ping", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate-api", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("inventory-exports", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate-session", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate-read-parity", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("validate-write-roundtrip", writer.ToString(), StringComparison.Ordinal);

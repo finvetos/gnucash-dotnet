@@ -44,10 +44,19 @@
       "id": "install.export-inventory",
       "domain": "Installation",
       "name": "Inventory stock installer exports",
-      "status": "deferred",
-      "surface": "Planned M12 command or script",
-      "evidence": "M12 scope",
-      "verification": ""
+      "status": "bridge-supported",
+      "surface": "inventory-exports CLI; BridgeRequestKind.InventoryNativeExports",
+      "evidence": "CliNativeExportInventoryTests",
+      "verification": "Bridge CLI and headless regression tests"
+    },
+    {
+      "id": "native.smoke-automation",
+      "domain": "Installation",
+      "name": "Optional native smoke automation",
+      "status": "bridge-supported",
+      "surface": "tools/native-smoke.ps1",
+      "evidence": "M12 native smoke scaffolding",
+      "verification": "Script runs install/API checks and optional real-book smoke steps"
     },
     {
       "id": "book.open",

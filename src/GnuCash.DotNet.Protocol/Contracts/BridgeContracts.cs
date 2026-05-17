@@ -28,7 +28,8 @@ public enum BridgeRequestKind
     ValidateNativeCustomerWrite = 12,
     ValidateNativeTransactionWrite = 13,
     ListCustomers = 14,
-    ValidateNativeTransactionBatchWrite = 15
+    ValidateNativeTransactionBatchWrite = 15,
+    InventoryNativeExports = 16
 }
 
 /// <summary>
@@ -171,6 +172,30 @@ public sealed record GnuCashNativeApiStatus(
     IReadOnlyList<string> MissingExports,
     IReadOnlyList<string> CheckedPaths,
     string Message);
+
+/// <summary>
+/// Inventory of native exports discovered in the official GnuCash installation.
+/// </summary>
+public sealed record GnuCashNativeExportInventoryStatus(
+    bool IsReady,
+    string? InstallPath,
+    string? DisplayVersion,
+    int LibraryCount,
+    int TotalExportCount,
+    IReadOnlyList<GnuCashNativeLibraryExportInventory> Libraries,
+    IReadOnlyList<string> CheckedPaths,
+    string Message);
+
+/// <summary>
+/// Exports discovered for one native library.
+/// </summary>
+public sealed record GnuCashNativeLibraryExportInventory(
+    string Name,
+    string Path,
+    bool IsReady,
+    int ExportCount,
+    IReadOnlyList<string> Exports,
+    string? ErrorMessage);
 
 /// <summary>
 /// Result of opening a book through the installed native GnuCash runtime.

@@ -17,3 +17,4 @@ Start with:
 - [milestones/m12-maximum-non-ui-api-coverage.md](milestones/m12-maximum-non-ui-api-coverage.md)
 - [operations/ai-agent-coding-standards.md](operations/ai-agent-coding-standards.md)
 - [operations/licensing.md](operations/licensing.md)
+- [operations/native-smoke-fixtures.md](operations/native-smoke-fixtures.md)

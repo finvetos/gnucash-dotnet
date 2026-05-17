@@ -13,6 +13,8 @@ public interface ICliRenderer
 
     void WriteNativeApiValidation(GnuCashNativeApiStatus status);
 
+    void WriteNativeExportInventory(GnuCashNativeExportInventoryStatus status);
+
     void WriteNativeSessionValidation(GnuCashNativeSessionStatus status);
 
     void WriteNativeReadParityValidation(GnuCashNativeReadParityStatus status);

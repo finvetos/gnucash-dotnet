@@ -101,6 +101,42 @@ public sealed class SpectreCliRenderer : ICliRenderer
         WriteValues("Missing native exports", status.MissingExports);
     }
 
+    public void WriteNativeExportInventory(GnuCashNativeExportInventoryStatus status)
+    {
+        WriteLogo();
+        var statusMarkup = status.IsReady ? "[bold green]Export inventory is ready[/]" : "[bold red]Export inventory has errors[/]";
+        console.Write(new Panel(statusMarkup + "\n" + Markup.Escape(status.Message))
+            .Header("Native Exports")
+            .Border(BoxBorder.Rounded));
+
+        var summary = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Field[/]")
+            .AddColumn("[bold]Value[/]");
+        summary.AddRow("Path", Markup.Escape(status.InstallPath ?? "unknown"));
+        summary.AddRow("Version", Markup.Escape(status.DisplayVersion ?? "unknown"));
+        summary.AddRow("Libraries", status.LibraryCount.ToString());
+        summary.AddRow("Exports", status.TotalExportCount.ToString());
+        console.Write(summary);
+
+        var libraries = new Table()
+            .Border(TableBorder.Rounded)
+            .AddColumn("[bold]Library[/]")
+            .AddColumn("[bold]Status[/]")
+            .AddColumn("[bold]Exports[/]")
+            .AddColumn("[bold]Error[/]");
+        foreach (var library in status.Libraries)
+        {
+            libraries.AddRow(
+                Markup.Escape(library.Name),
+                library.IsReady ? "Ready" : "Not ready",
+                library.ExportCount.ToString(),
+                Markup.Escape(library.ErrorMessage ?? ""));
+        }
+
+        console.Write(libraries);
+    }
+
     public void WriteNativeSessionValidation(GnuCashNativeSessionStatus status)
     {
         WriteLogo();
